@@ -30,29 +30,28 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
   return (
     <div
-      className="fixed inset-0 top-20 z-50 px-6 md:px-8 overflow-y-auto animate-backdrop-fade-in"
+      className="fixed inset-0 top-24 z-50 px-6 md:px-8 overflow-y-auto animate-backdrop-fade-in"
       onClick={onClose}
     >
-      <div className="w-full lg:w-[72vw] max-w-[1180px] min-w-[300px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_2.5fr] gap-6 items-start animate-modal-fade-in">
+      <div className="w-full lg:w-[64vw] max-w-[980px] min-w-[300px] mx-auto grid grid-cols-1 lg:grid-cols-[0.9fr_2.1fr] gap-4 items-start animate-modal-fade-in">
         <aside
           role="dialog"
-          aria-labelledby="profile-title"
-          className="group border border-[#2a2420] bg-[#efe7d5] p-3 shadow-[5px_5px_0_#d6cfbe]"
+          aria-label="Profile card"
+          className="group border border-[#2a2420] bg-[#efe7d5] p-2.5 shadow-[5px_5px_0_#d6cfbe]"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border border-[#2a2420] bg-[#e3d9c4] px-3 py-2 mb-3">
-            <span id="profile-title" className="font-serif text-base text-[#2a2420]">Profile</span>
+          <div className="flex items-center justify-end border border-[#2a2420] bg-[#e3d9c4] px-2 py-1.5 mb-2">
             <button
               type="button"
               onClick={onClose}
               aria-label="Close about panel"
-              className="h-8 w-8 border border-[#2a2420] bg-[#f7f1e2] inline-flex items-center justify-center font-sans text-sm text-[#2a2420] hover:bg-[#ede4cf]"
+              className="h-7 w-7 border border-[#2a2420] bg-[#f7f1e2] inline-flex items-center justify-center font-sans text-xs text-[#2a2420] hover:bg-[#ede4cf]"
             >
               X
             </button>
           </div>
 
-          <div className="relative aspect-[3/4] border border-[#2a2420] bg-[#f8f3e7] mb-3">
+          <div className="relative aspect-[3/4] border border-[#2a2420] bg-[#f8f3e7] mb-2">
             <Image
               src="/baris-portrait.png"
               alt="Barış Köse portrait"
@@ -83,7 +82,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
           role="dialog"
           aria-modal="false"
           aria-labelledby="about-title"
-          className="border border-[#6d6963] bg-[#fbf6ea] p-5 md:p-6 shadow-[5px_5px_0_#d6cfbe]"
+          className="border border-[#6d6963] bg-[#fbf6ea] p-4 md:p-5 shadow-[5px_5px_0_#d6cfbe]"
           onClick={(e) => e.stopPropagation()}
         >
           <h2 id="about-title" className="font-serif text-xl md:text-2xl text-[#2a2420] mb-4">
