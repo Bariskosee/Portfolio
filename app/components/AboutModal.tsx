@@ -37,7 +37,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
         <aside
           role="dialog"
           aria-labelledby="profile-title"
-          className="border border-[#2a2420] bg-[#efe7d5] p-3 shadow-[5px_5px_0_#d6cfbe]"
+          className="group border border-[#2a2420] bg-[#efe7d5] p-3 shadow-[5px_5px_0_#d6cfbe]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border border-[#2a2420] bg-[#e3d9c4] px-3 py-2 mb-3">
@@ -64,9 +64,17 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full border border-[#2a2420] bg-[#1f4d3a] px-4 py-2 text-left font-sans text-xs tracking-[0.18em] uppercase text-[#f7f1e2]"
+            className="w-full border border-[#2a2420] bg-[#1f4d3a] pl-4 pr-4 py-2 flex items-center justify-between"
           >
-            About
+            <span className="font-sans text-sm font-bold tracking-[0.2em] text-text-primary">
+              whoami
+            </span>
+            <span
+              className="alien-wiggle text-base leading-none select-none transition-transform duration-200 group-hover:rotate-12"
+              aria-hidden="true"
+            >
+              👾
+            </span>
           </button>
         </aside>
 

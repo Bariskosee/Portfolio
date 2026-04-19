@@ -39,6 +39,7 @@ const collaborations = [
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [language, setLanguage] = useState<"EN" | "TR">("TR");
 
   return (
     <>
@@ -47,19 +48,52 @@ export default function Home() {
           onClick={() => setModalOpen(true)}
           aria-haspopup="dialog"
           aria-controls="about-panel"
-          className="flex items-center gap-1.5 rounded-full border border-[rgba(45,95,76,0.3)] bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-accent transition-colors duration-200 hover:bg-accent hover:text-bg-primary"
+          className="flex items-center gap-1.5 rounded-full border border-[rgba(45,95,76,0.3)] bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] transition-colors duration-200 hover:bg-accent hover:text-bg-primary"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-          ABOUT
+          whoami
         </button>
-        <a
-          href="https://github.com/Bariskosee"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-sans text-sm text-text-secondary transition-colors hover:text-accent"
-        >
-          GitHub ↗
-        </a>
+        <div className="flex items-center gap-3">
+          <div
+            role="group"
+            aria-label="Language switch"
+            className="inline-flex items-center rounded-full border border-[rgba(26,29,46,0.18)] bg-[rgba(255,255,255,0.45)] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
+          >
+            <button
+              type="button"
+              onClick={() => setLanguage("EN")}
+              aria-pressed={language === "EN"}
+              className={`rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
+                language === "EN"
+                  ? "bg-[#2a2420] text-[#f7f1e2]"
+                  : "text-text-secondary hover:text-accent"
+              }`}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage("TR")}
+              aria-pressed={language === "TR"}
+              className={`rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
+                language === "TR"
+                  ? "bg-[#2a2420] text-[#f7f1e2]"
+                  : "text-text-secondary hover:text-accent"
+              }`}
+            >
+              TR
+            </button>
+          </div>
+
+          <a
+            href="https://github.com/Bariskosee"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-sans text-sm text-text-secondary transition-colors hover:text-accent"
+          >
+            GitHub ↗
+          </a>
+        </div>
       </header>
 
       <main>
