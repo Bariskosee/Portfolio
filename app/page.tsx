@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import AboutModal from "./components/AboutModal";
+import { SkillSphere } from "./components/SkillSphere";
 
 const projects = [
   {
@@ -165,6 +166,18 @@ export default function Home() {
             <p className="font-sans text-sm tracking-wide text-text-muted">
               {collaborations.join(" · ")}
             </p>
+          </div>
+        </section>
+
+        <section className="py-24 md:py-32 px-8 bg-bg-primary">
+          <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
+            <h2 className="font-serif italic text-2xl text-text-muted mb-2">
+              Technologies
+            </h2>
+            <p className="font-sans text-xs text-text-muted tracking-wide mb-4">
+              drag to spin
+            </p>
+            <SkillSphere />
           </div>
         </section>
 
