@@ -14,23 +14,22 @@ const geistSans = Geist({
   display: "swap",
 });
 
-const FAVICON_VERSION = "20260419";
+const FAVICON_VERSION = "20260420";
 
 const withVersion = (path: string) => `${path}?v=${FAVICON_VERSION}`;
-
-const EMOJI_FAVICON = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-size="52">👾</text></svg>`
-)}`;
 
 export const metadata: Metadata = {
   title: "Barış Köse — Software Engineer",
   description:
     "Building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
   icons: {
-    shortcut: [{ url: EMOJI_FAVICON, type: "image/svg+xml" }],
+    shortcut: [{ url: withVersion("/favicon/favicon-96x96.png"), type: "image/png" }],
     icon: [
-      { url: EMOJI_FAVICON, type: "image/svg+xml", sizes: "any" },
-      { url: withVersion("/favicon/favicon-96x96.png"), sizes: "96x96", type: "image/png" },
+      {
+        url: withVersion("/favicon/favicon-96x96.png"),
+        sizes: "96x96",
+        type: "image/png",
+      },
     ],
     apple: [
       {
