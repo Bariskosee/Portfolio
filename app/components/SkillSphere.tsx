@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /* ── Icon definitions ─────────────────────────────────────────────────── */
 const ICONS = [
@@ -34,19 +34,6 @@ interface Pos3D {
   id: number;
 }
 
-interface TargetRotation {
-  x: number;
-  y: number;
-  startX: number;
-  startY: number;
-  startTime: number;
-  duration: number;
-}
-
-function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
-}
-
 /* ── Component ────────────────────────────────────────────────────────── */
 export function SkillSphere() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -55,11 +42,46 @@ export function SkillSphere() {
   const rotRef = useRef({ x: 0.3, y: 0 });
   const animRef = useRef(0);
 
-  const [positions, setPositions] = useState<Pos3D[]>([]);
+  const [canvasSize, setCanvasSize] = useState(420);
+  const [reduceMotion, setReduceMotion] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [lastMouse, setLastMouse] = useState({ x: 0, y: 0 });
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [target, setTarget] = useState<TargetRotation | null>(null);
+
+  const positions: Pos3D[] = useMemo(() => {
+    const n = ICONS.length;
+    const R = canvasSize * 0.31;
+    const offset = 2 / n;
+    const step = Math.PI * (3 - Math.sqrt(5));
+
+    return ICONS.map((_, i) => {
+      const y = i * offset - 1 + offset / 2;
+      const r = Math.sqrt(1 - y * y);
+      const phi = i * step;
+      return { x: Math.cos(phi) * r * R, y: y * R, z: Math.sin(phi) * r * R, id: i };
+    });
+  }, [canvasSize]);
+
+  useEffect(() => {
+    const updateSize = () => {
+      const next = Math.max(260, Math.min(window.innerWidth - 40, 420));
+      setCanvasSize(next);
+    };
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotionPreference = () => setReduceMotion(mediaQuery.matches);
+
+    updateSize();
+    updateMotionPreference();
+
+    window.addEventListener("resize", updateSize);
+    mediaQuery.addEventListener("change", updateMotionPreference);
+
+    return () => {
+      window.removeEventListener("resize", updateSize);
+      mediaQuery.removeEventListener("change", updateMotionPreference);
+    };
+  }, []);
 
   /* pre-render each icon onto an offscreen canvas */
   useEffect(() => {
@@ -85,22 +107,6 @@ export function SkillSphere() {
     });
   }, []);
 
-  /* Fibonacci sphere positions */
-  useEffect(() => {
-    const n = ICONS.length;
-    const R = 130;
-    const offset = 2 / n;
-    const step = Math.PI * (3 - Math.sqrt(5));
-    setPositions(
-      ICONS.map((_, i) => {
-        const y = i * offset - 1 + offset / 2;
-        const r = Math.sqrt(1 - y * y);
-        const phi = i * step;
-        return { x: Math.cos(phi) * r * R, y: y * R, z: Math.sin(phi) * r * R, id: i };
-      })
-    );
-  }, []);
-
   /* animation loop */
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -118,15 +124,7 @@ export function SkillSphere() {
       const maxD = Math.sqrt(cx * cx + cy * cy);
       const speed = 0.002 + (Math.sqrt(mdx * mdx + mdy * mdy) / maxD) * 0.007;
 
-      if (target) {
-        const elapsed = performance.now() - target.startTime;
-        const t = Math.min(1, elapsed / target.duration);
-        rotRef.current = {
-          x: target.startX + (target.x - target.startX) * easeOutCubic(t),
-          y: target.startY + (target.y - target.startY) * easeOutCubic(t),
-        };
-        if (t >= 1) setTarget(null);
-      } else if (!isDragging) {
+      if (!isDragging && !reduceMotion) {
         rotRef.current = {
           x: rotRef.current.x + (mdy / canvas.height) * speed,
           y: rotRef.current.y + (mdx / canvas.width) * speed,
@@ -176,7 +174,7 @@ export function SkillSphere() {
 
     draw();
     return () => cancelAnimationFrame(animRef.current);
-  }, [positions, isDragging, mousePos, target]);
+  }, [positions, isDragging, mousePos, reduceMotion]);
 
   /* ── event handlers ── */
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -199,17 +197,19 @@ export function SkillSphere() {
   const onMouseUp = () => setIsDragging(false);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={420}
-      height={420}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-      className="cursor-grab active:cursor-grabbing"
-      aria-label="3D rotating skill sphere: Git, GitHub, Docker, Java, Python"
-      role="img"
-    />
+    <div className="mx-auto w-full max-w-[420px]">
+      <canvas
+        ref={canvasRef}
+        width={canvasSize}
+        height={canvasSize}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        className={`w-full h-auto ${isDragging ? "cursor-grabbing opacity-90" : "cursor-grab"}`}
+        aria-label="3D rotating skill sphere: Git, GitHub, Docker, Java, Python"
+        role="img"
+      />
+    </div>
   );
 }

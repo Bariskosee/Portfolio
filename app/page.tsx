@@ -4,30 +4,56 @@ import { useState } from "react";
 import Image from "next/image";
 import AboutModal from "./components/AboutModal";
 import { SkillSphere } from "./components/SkillSphere";
+import WireframeSphere from "./components/WireframeSphere";
 
-const projects = [
-  {
-    title: "ev-charging-simulation",
-    description:
-      "19-microservice event-driven EV charging platform. 10k+ events/sec with Kafka.",
-    stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
-    link: "https://github.com/Bariskosee/ev-charging-simulation",
-  },
-  {
-    title: "MefapexChatBox",
-    description:
-      "Turkish NLP chatbot with BERT intent classification. 85%+ accuracy, production-ready.",
-    stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
-    link: "https://github.com/Bariskosee/MefapexChatBox",
-  },
-  {
-    title: "DataFelix",
-    description:
-      "Full-stack movie catalog showcasing Spring Boot backend architecture.",
-    stack: ["Java 17", "Spring Boot", "Spring Security"],
-    link: "https://github.com/Bariskosee/DataFelix",
-  },
-];
+const projects = {
+  EN: [
+    {
+      title: "ev-charging-simulation",
+      description:
+        "19-microservice, event-driven EV charging platform. Handles 10k+ events/sec with Kafka.",
+      stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
+      link: "https://github.com/Bariskosee/ev-charging-simulation",
+    },
+    {
+      title: "MefapexChatBox",
+      description:
+        "Turkish NLP chatbot with BERT-based intent classification. 85%+ accuracy, production-ready.",
+      stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
+      link: "https://github.com/Bariskosee/MefapexChatBox",
+    },
+    {
+      title: "DataFelix",
+      description:
+        "Full-stack movie catalog that highlights clean Spring Boot backend architecture.",
+      stack: ["Java 17", "Spring Boot", "Spring Security"],
+      link: "https://github.com/Bariskosee/DataFelix",
+    },
+  ],
+  TR: [
+    {
+      title: "ev-charging-simulation",
+      description:
+        "19 mikroservisli, event-driven EV charging platformu. Kafka ile 10k+ event/sn işleyebiliyor.",
+      stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
+      link: "https://github.com/Bariskosee/ev-charging-simulation",
+    },
+    {
+      title: "MefapexChatBox",
+      description:
+        "BERT tabanlı intent sınıflandırma kullanan Türkçe NLP chatbot. %85+ doğruluk, production-ready.",
+      stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
+      link: "https://github.com/Bariskosee/MefapexChatBox",
+    },
+    {
+      title: "DataFelix",
+      description:
+        "Spring Boot backend mimarisini öne çıkaran full-stack film kataloğu projesi.",
+      stack: ["Java 17", "Spring Boot", "Spring Security"],
+      link: "https://github.com/Bariskosee/DataFelix",
+    },
+  ],
+} as const;
 
 const collaborations = [
   "Mefapex Technology",
@@ -38,21 +64,41 @@ const collaborations = [
   "BTK Akademi",
 ];
 
+const copy = {
+  EN: {
+    aboutCta: "whoami",
+    projectsTitle: "Projects",
+    collabTitle: "Collaborations I Have Done",
+    technologiesTitle: "Technologies",
+    dragHint: "drag to spin",
+    footer: "© 2026 Barış Köse · Made with care in Istanbul",
+  },
+  TR: {
+    aboutCta: "hakkımda",
+    projectsTitle: "Projeler",
+    collabTitle: "Birlikte Çalıştığım Kurumlar",
+    technologiesTitle: "Teknolojiler",
+    dragHint: "döndürmek için sürükle",
+    footer: "© 2026 Barış Köse · Istanbul'da özenle geliştirildi",
+  },
+} as const;
+
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [language, setLanguage] = useState<"EN" | "TR">("TR");
+  const t = copy[language];
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-8 py-6">
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-4 md:px-8 md:py-6 backdrop-blur-sm">
         <button
           onClick={() => setModalOpen(true)}
           aria-haspopup="dialog"
           aria-controls="about-panel"
-          className="flex items-center gap-1.5 rounded-full border border-[rgba(45,95,76,0.3)] bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] transition-colors duration-200 hover:bg-accent hover:text-bg-primary"
+          className="focus-ring flex items-center gap-1.5 rounded-full border border-[rgba(45,95,76,0.3)] bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] transition-colors duration-200 hover:bg-accent hover:text-bg-primary"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-          whoami
+          {t.aboutCta}
         </button>
         <div className="flex items-center gap-3">
           <div
@@ -64,7 +110,7 @@ export default function Home() {
               type="button"
               onClick={() => setLanguage("EN")}
               aria-pressed={language === "EN"}
-              className={`rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
+              className={`focus-ring rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
                 language === "EN"
                   ? "bg-[#2a2420] text-[#f7f1e2]"
                   : "text-text-secondary hover:text-accent"
@@ -76,7 +122,7 @@ export default function Home() {
               type="button"
               onClick={() => setLanguage("TR")}
               aria-pressed={language === "TR"}
-              className={`rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
+              className={`focus-ring rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
                 language === "TR"
                   ? "bg-[#2a2420] text-[#f7f1e2]"
                   : "text-text-secondary hover:text-accent"
@@ -90,7 +136,7 @@ export default function Home() {
             href="https://github.com/Bariskosee"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-sans text-sm text-text-secondary transition-colors hover:text-accent"
+            className="focus-ring rounded-md font-sans text-sm text-text-secondary transition-colors hover:text-accent"
           >
             GitHub ↗
           </a>
@@ -98,17 +144,17 @@ export default function Home() {
       </header>
 
       <main>
-        <section className="relative min-h-screen flex items-center justify-center px-8">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-20">
+        <section className="relative min-h-screen flex items-center justify-center px-5 pt-24 pb-14 md:px-8 md:pt-28 md:pb-16">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-16 lg:gap-20">
             <div className="flex flex-col">
-              <h1 className="font-serif font-normal text-8xl md:text-9xl leading-[0.95] text-text-primary">
+              <h1 className="font-serif font-normal text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] text-text-primary">
                 Barış
               </h1>
-              <h1 className="font-serif font-normal italic text-8xl md:text-9xl leading-[0.95] text-accent">
+              <h1 className="font-serif font-normal italic text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] text-accent">
                 Köse
               </h1>
             </div>
-            <div className="w-[280px] h-[420px] md:w-[320px] md:h-[480px] relative flex-shrink-0 animate-character-float">
+            <div className="w-[240px] h-[360px] sm:w-[280px] sm:h-[420px] md:w-[320px] md:h-[480px] relative flex-shrink-0 animate-character-float">
               <Image
                 src="/baris-idle.png"
                 alt="Barış Köse pixel art character"
@@ -119,22 +165,26 @@ export default function Home() {
             </div>
           </div>
 
-          <AboutModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+          <AboutModal
+            isOpen={modalOpen}
+            language={language}
+            onClose={() => setModalOpen(false)}
+          />
         </section>
 
-        <section className="py-24 md:py-32 px-8">
+        <section className="py-16 md:py-24 lg:py-28 px-5 md:px-8">
           <div className="max-w-6xl mx-auto">
-            <h2 className="font-serif italic text-5xl md:text-6xl text-text-primary mb-16 text-center">
-              Projects
+            <h2 className="font-serif italic text-4xl md:text-5xl lg:text-6xl text-text-primary mb-10 md:mb-14 text-center">
+              {t.projectsTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-              {projects.map((project) => (
+              {projects[language].map((project) => (
                 <a
                   key={project.title}
                   href={project.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col gap-4 rounded-3xl bg-bg-modal p-8 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  className="focus-ring flex flex-col gap-4 rounded-3xl bg-bg-surface p-6 md:p-8 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
                 >
                   <h3 className="font-serif text-2xl text-text-primary">
                     {project.title}
@@ -158,32 +208,44 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-32 px-8 bg-bg-secondary">
+        <section className="py-14 md:py-20 px-5 md:px-8 bg-bg-secondary/65">
           <div className="max-w-6xl mx-auto text-center">
-            <h2 className="font-serif italic text-2xl text-text-muted mb-10">
-              Collaborations I Have Done
+            <h2 className="font-serif italic text-2xl text-text-muted mb-7 md:mb-9">
+              {t.collabTitle}
             </h2>
-            <p className="font-sans text-sm tracking-wide text-text-muted">
+            <p className="font-sans text-sm tracking-wide leading-relaxed text-text-muted">
               {collaborations.join(" · ")}
             </p>
           </div>
         </section>
 
-        <section className="py-24 md:py-32 px-8 bg-bg-primary">
+        <section className="py-16 md:py-24 lg:py-28 px-5 md:px-8 bg-bg-primary">
           <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
-            <h2 className="font-serif italic text-2xl text-text-muted mb-2">
-              Technologies
+            <h2 className="font-serif italic text-2xl text-text-muted mb-1">
+              {t.technologiesTitle}
             </h2>
-            <p className="font-sans text-xs text-text-muted tracking-wide mb-4">
-              drag to spin
+            <p className="font-sans text-xs text-text-muted tracking-wide mb-5">
+              {t.dragHint}
             </p>
-            <SkillSphere />
+            <div className="relative flex w-full items-center justify-center overflow-hidden">
+              {/* Wireframe sphere — decorative background layer */}
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none text-accent"
+                style={{ opacity: 0.15 }}
+              >
+                <WireframeSphere size={420} className="sphere-rotate" />
+              </div>
+              {/* Icon sphere — interactive foreground layer */}
+              <div className="relative z-10">
+                <SkillSphere />
+              </div>
+            </div>
           </div>
         </section>
 
-        <footer className="py-10 px-8 text-center bg-bg-primary">
+        <footer className="py-10 px-5 md:px-8 text-center bg-bg-primary">
           <p className="font-sans text-sm text-text-muted">
-            © 2026 Barış Köse · Made with care in Istanbul
+            {t.footer}
           </p>
         </footer>
       </main>

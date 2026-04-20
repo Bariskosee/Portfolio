@@ -3,7 +3,8 @@
 :root {
   --bg-primary: #f4eee0;
   --bg-secondary: #ebe3d1;
-  --bg-modal: #fbf8f1;
+  --bg-surface: #fbf8f1;
+  --bg-panel: #efe7d5;
   --text-primary: #1a1d2e;
   --text-secondary: #5a6077;
   --text-muted: #8a8fa0;
@@ -11,12 +12,16 @@
   --accent-hover: #3a7a62;
   --accent-soft: #d4e4dc;
   --highlight: #c8935f;
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-lift: 0 12px 30px rgba(0, 0, 0, 0.1);
+  --shadow-retro: 5px 5px 0 #d6cfbe;
 }
 
 @theme inline {
   --color-bg-primary: var(--bg-primary);
   --color-bg-secondary: var(--bg-secondary);
-  --color-bg-modal: var(--bg-modal);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-panel: var(--bg-panel);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
@@ -65,9 +70,38 @@
   image-rendering: pixelated;
 }
 
+@utility focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/55 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary;
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
+}
+
+@utility shadow-retro {
+  box-shadow: var(--shadow-retro);
+}
+
 body {
-  background-color: var(--bg-primary);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(212, 228, 220, 0.58), transparent 40%),
+    radial-gradient(circle at 80% 25%, rgba(200, 147, 95, 0.1), transparent 35%),
+    var(--bg-primary);
   color: var(--text-primary);
+}
+
+@keyframes sphere-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.sphere-rotate {
+  animation: sphere-rotate 120s linear infinite;
+  transform-origin: center;
 }
 
 @keyframes alien-wiggle {
@@ -80,4 +114,15 @@ body {
   animation: alien-wiggle 3s ease-in-out infinite;
   display: inline-block;
   transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

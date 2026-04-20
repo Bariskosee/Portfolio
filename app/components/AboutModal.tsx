@@ -5,10 +5,38 @@ import Image from "next/image";
 
 interface AboutModalProps {
   isOpen: boolean;
+  language: "EN" | "TR";
   onClose: () => void;
 }
 
-export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
+const modalCopy = {
+  EN: {
+    title: "Hi, I'm Barış.",
+    whoami: "whoami",
+    body: [
+      "I'm a software engineering student based in Istanbul with a fascination for systems that scale and machines that learn. I'm currently in my third year at Istanbul Aydın University, fresh off an Erasmus semester at Universidad de Alicante.",
+      "My work lives at the intersection of distributed systems and AI/ML. I've built event-driven microservices handling thousands of events per second, and NLP chatbots that actually understand Turkish. When I'm not debugging production code, I'm probably solving LeetCode problems, playing tennis, or rewatching Mindhunter for the fourth time.",
+      "I've spent two summers working in the US, one semester in Spain, and I'm aiming for a master's in Germany next. I believe great engineering comes from curiosity, long walks, and occasional time zone changes.",
+    ],
+    email: "Email",
+    closeLabel: "Close about panel",
+  },
+  TR: {
+    title: "Merhaba, ben Barış.",
+    whoami: "hakkımda",
+    body: [
+      "Istanbul'da yaşayan, ölçeklenebilir sistemler ve öğrenen makineler üzerine odaklanan bir yazılım mühendisliği öğrencisiyim. Istanbul Aydın Üniversitesi'nde 3. sınıftayım ve Erasmus dönemimi Universidad de Alicante'de tamamladım.",
+      "Çalışmalarım distributed systems ile AI/ML kesişiminde ilerliyor. Saniyede binlerce event işleyen event-driven mikroservisler ve Türkçeyi gerçekten anlayan NLP chatbot'lar geliştirdim. Kod dışında genelde LeetCode çözüyor, tenis oynuyor ya da Mindhunter'ı tekrar izliyorum.",
+      "ABD'de iki yaz dönemi çalıştım, İspanya'da bir dönem eğitim aldım ve sıradaki hedefim Almanya'da yüksek lisans. İyi mühendisliğin merak, uzun yürüyüşler ve bazen zaman dilimi değişiminden beslendiğine inanıyorum.",
+    ],
+    email: "E-posta",
+    closeLabel: "Hakkımda panelini kapat",
+  },
+} as const;
+
+export default function AboutModal({ isOpen, language, onClose }: AboutModalProps) {
+  const t = modalCopy[language];
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -30,28 +58,28 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
   return (
     <div
-      className="fixed inset-0 top-24 z-50 px-6 md:px-8 overflow-y-auto animate-backdrop-fade-in"
+      className="fixed inset-0 top-[5.5rem] z-50 overflow-y-auto bg-[rgba(16,18,30,0.26)] px-5 pb-8 pt-6 md:top-24 md:px-8 animate-backdrop-fade-in"
       onClick={onClose}
     >
-      <div className="w-full lg:w-[64vw] max-w-[980px] min-w-[300px] mx-auto grid grid-cols-1 lg:grid-cols-[0.9fr_2.1fr] gap-4 items-start animate-modal-fade-in">
+      <div className="mx-auto grid w-full max-w-[980px] min-w-[300px] grid-cols-1 items-start gap-4 md:gap-5 lg:w-[64vw] lg:grid-cols-[0.9fr_2.1fr] animate-modal-fade-in">
         <aside
-          role="dialog"
+          role="group"
           aria-label="Profile card"
-          className="group border border-[#2a2420] bg-[#efe7d5] p-2.5 shadow-[5px_5px_0_#d6cfbe]"
+          className="group border border-text-primary/85 bg-bg-panel p-2.5 shadow-retro"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-end border border-[#2a2420] bg-[#e3d9c4] px-2 py-1.5 mb-2">
+          <div className="mb-2 flex items-center justify-end border border-text-primary/85 bg-bg-secondary px-2 py-1.5">
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close about panel"
-              className="h-7 w-7 border border-[#2a2420] bg-[#f7f1e2] inline-flex items-center justify-center font-sans text-xs text-[#2a2420] hover:bg-[#ede4cf]"
+              aria-label={t.closeLabel}
+              className="focus-ring inline-flex h-7 w-7 items-center justify-center border border-text-primary/85 bg-bg-surface font-sans text-xs text-text-primary transition-colors hover:bg-bg-secondary"
             >
               X
             </button>
           </div>
 
-          <div className="relative aspect-[3/4] border border-[#2a2420] bg-[#f8f3e7] mb-2">
+          <div className="relative mb-2 aspect-[3/4] border border-text-primary/85 bg-bg-surface">
             <Image
               src="/baris-portrait.png"
               alt="Barış Köse portrait"
@@ -63,10 +91,10 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full border border-[#2a2420] bg-[#1f4d3a] pl-4 pr-4 py-2 flex items-center justify-between"
+            className="focus-ring flex w-full items-center justify-between border border-text-primary/85 bg-accent px-4 py-2"
           >
-            <span className="font-sans text-sm font-bold tracking-[0.2em] text-text-primary">
-              whoami
+            <span className="font-sans text-sm font-bold tracking-[0.2em] text-bg-primary">
+              {t.whoami}
             </span>
             <span
               className="alien-wiggle text-base leading-none select-none transition-transform duration-200 group-hover:rotate-12"
@@ -80,48 +108,42 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
         <article
           id="about-panel"
           role="dialog"
-          aria-modal="false"
+          aria-modal="true"
           aria-labelledby="about-title"
-          className="border border-[#6d6963] bg-[#fbf6ea] p-4 md:p-5 shadow-[5px_5px_0_#d6cfbe]"
+          className="border border-text-primary/50 bg-bg-surface p-4 md:p-5 shadow-retro"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 id="about-title" className="font-serif text-xl md:text-2xl text-[#2a2420] mb-4">
-            Hi, I&apos;m Barış.
+          <h2 id="about-title" className="mb-4 font-serif text-xl text-text-primary md:text-2xl">
+            {t.title}
           </h2>
 
           <div className="space-y-4">
-            <p className="font-serif text-sm leading-relaxed text-[#2a2420]">
-              I&apos;m a software engineering student based in Istanbul with a fascination for systems that scale and machines that learn. I&apos;m currently in my third year at Istanbul Aydın University, fresh off an Erasmus semester at Universidad de Alicante.
-            </p>
-
-            <p className="font-serif text-sm leading-relaxed text-[#2a2420]">
-              My work lives at the intersection of distributed systems and AI/ML— I&apos;ve built event-driven microservices handling thousands of events per second, and NLP chatbots that actually understand Turkish. When I&apos;m not debugging production code, I&apos;m probably solving LeetCode problems, playing tennis, or rewatching Mindhunter for the fourth time.
-            </p>
-
-            <p className="font-serif text-sm leading-relaxed text-[#2a2420]">
-              I&apos;ve spent two summers working in the US, one semester in Spain, and I&apos;m aiming for a master&apos;s in Germany next. I believe great engineering comes from curiosity, long walks, and occasional time zone changes.
-            </p>
+            {t.body.map((paragraph) => (
+              <p key={paragraph} className="font-serif text-sm leading-relaxed text-text-primary">
+                {paragraph}
+              </p>
+            ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t-2 border-[#bcb3a0] flex flex-wrap items-center gap-3 font-sans text-sm tracking-wide uppercase">
-            <a href="mailto:kosebaris279@gmail.com" className="text-[#1f4d3a] hover:underline">
-              Email
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t-2 border-text-muted/35 pt-4 font-sans text-sm tracking-wide uppercase">
+            <a href="mailto:kosebaris279@gmail.com" className="focus-ring rounded-sm text-accent hover:underline">
+              {t.email}
             </a>
-            <span className="text-[#7a7366]">·</span>
+            <span className="text-text-muted">·</span>
             <a
               href="https://linkedin.com/in/barisskose/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#1f4d3a] hover:underline"
+              className="focus-ring rounded-sm text-accent hover:underline"
             >
               LinkedIn
             </a>
-            <span className="text-[#7a7366]">·</span>
+            <span className="text-text-muted">·</span>
             <a
               href="https://github.com/Bariskosee"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#1f4d3a] hover:underline"
+              className="focus-ring rounded-sm text-accent hover:underline"
             >
               GitHub
             </a>
