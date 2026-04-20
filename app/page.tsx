@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import AboutModal from "./components/AboutModal";
 import { SkillSphere } from "./components/SkillSphere";
 import WireframeSphere from "./components/WireframeSphere";
+
+const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
+  ssr: false,
+});
 
 const projects = {
   EN: [
@@ -55,20 +60,10 @@ const projects = {
   ],
 } as const;
 
-const collaborations = [
-  "Mefapex Technology",
-  "Turkcell",
-  "Google YZTA",
-  "Istanbul Aydın University",
-  "Universidad de Alicante",
-  "BTK Akademi",
-];
-
 const copy = {
   EN: {
     aboutCta: "whoami",
     projectsTitle: "Projects",
-    collabTitle: "Collaborations I Have Done",
     technologiesTitle: "Technologies",
     dragHint: "drag to spin",
     footer: "© 2026 Barış Köse · Made with care in Istanbul",
@@ -76,7 +71,6 @@ const copy = {
   TR: {
     aboutCta: "hakkımda",
     projectsTitle: "Projeler",
-    collabTitle: "Birlikte Çalıştığım Kurumlar",
     technologiesTitle: "Teknolojiler",
     dragHint: "döndürmek için sürükle",
     footer: "© 2026 Barış Köse · Istanbul'da özenle geliştirildi",
@@ -90,6 +84,9 @@ export default function Home() {
 
   return (
     <>
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <ParticleFloor />
+      </div>
       <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-4 md:px-8 md:py-6 backdrop-blur-sm">
         <button
           onClick={() => setModalOpen(true)}
@@ -205,17 +202,6 @@ export default function Home() {
                 </a>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="py-14 md:py-20 px-5 md:px-8 bg-bg-secondary/65">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="font-serif italic text-2xl text-text-muted mb-7 md:mb-9">
-              {t.collabTitle}
-            </h2>
-            <p className="font-sans text-sm tracking-wide leading-relaxed text-text-muted">
-              {collaborations.join(" · ")}
-            </p>
           </div>
         </section>
 
