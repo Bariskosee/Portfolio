@@ -85,55 +85,56 @@ export default function Home() {
 
   return (
     <>
-      <div className="fixed inset-0 -z-10 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <ParticleFloor />
       </div>
-      <WhoamiCard language={language} />
-      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-end px-5 py-4 md:px-8 md:py-6 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div
-            role="group"
-            aria-label="Language switch"
-            className="inline-flex items-center rounded-full border border-[rgba(26,29,46,0.18)] bg-[rgba(255,255,255,0.45)] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
-          >
-            <button
-              type="button"
-              onClick={() => setLanguage("EN")}
-              aria-pressed={language === "EN"}
-              className={`focus-ring rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
-                language === "EN"
-                  ? "bg-[#2a2420] text-[#f7f1e2]"
-                  : "text-text-secondary hover:text-accent"
-              }`}
+      <div className="relative z-10">
+        <WhoamiCard language={language} />
+        <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-end px-5 py-4 md:px-8 md:py-6 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div
+              role="group"
+              aria-label="Language switch"
+              className="inline-flex items-center rounded-full border border-[rgba(26,29,46,0.18)] bg-[rgba(255,255,255,0.45)] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
             >
-              EN
-            </button>
-            <button
-              type="button"
-              onClick={() => setLanguage("TR")}
-              aria-pressed={language === "TR"}
-              className={`focus-ring rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
-                language === "TR"
-                  ? "bg-[#2a2420] text-[#f7f1e2]"
-                  : "text-text-secondary hover:text-accent"
-              }`}
+              <button
+                type="button"
+                onClick={() => setLanguage("EN")}
+                aria-pressed={language === "EN"}
+                className={`focus-ring rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
+                  language === "EN"
+                    ? "bg-[#2a2420] text-[#f7f1e2]"
+                    : "text-text-secondary hover:text-accent"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("TR")}
+                aria-pressed={language === "TR"}
+                className={`focus-ring rounded-full px-3 py-1 font-sans text-xs font-semibold tracking-widest transition-colors ${
+                  language === "TR"
+                    ? "bg-[#2a2420] text-[#f7f1e2]"
+                    : "text-text-secondary hover:text-accent"
+                }`}
+              >
+                TR
+              </button>
+            </div>
+
+            <a
+              href="https://github.com/Bariskosee"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="focus-ring rounded-md font-sans text-sm text-text-secondary transition-colors hover:text-accent"
             >
-              TR
-            </button>
+              GitHub ↗
+            </a>
           </div>
+        </header>
 
-          <a
-            href="https://github.com/Bariskosee"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="focus-ring rounded-md font-sans text-sm text-text-secondary transition-colors hover:text-accent"
-          >
-            GitHub ↗
-          </a>
-        </div>
-      </header>
-
-      <main>
+        <main>
         <section className="relative px-5 pt-24 pb-12 md:px-8 md:pt-28 md:pb-14">
           <div className="mx-auto flex min-h-[calc(100vh-7.5rem)] w-full max-w-6xl flex-col justify-center gap-8 md:min-h-[calc(100vh-8.75rem)] md:gap-10 lg:gap-12">
             <div className="flex flex-col items-center text-center">
@@ -234,7 +235,8 @@ export default function Home() {
             {t.footer}
           </p>
         </footer>
-      </main>
+        </main>
+      </div>
     </>
   );
 }
