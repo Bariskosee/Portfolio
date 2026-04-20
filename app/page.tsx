@@ -134,24 +134,67 @@ export default function Home() {
       </header>
 
       <main>
-        <section className="relative min-h-screen flex items-center justify-center px-5 pt-24 pb-14 md:px-8 md:pt-28 md:pb-16">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-16 lg:gap-20">
-            <div className="flex flex-col">
-              <h1 className="font-serif font-normal text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] text-text-primary">
+        <section className="relative px-5 pt-24 pb-12 md:px-8 md:pt-28 md:pb-14">
+          <div className="mx-auto flex min-h-[calc(100vh-7.5rem)] w-full max-w-6xl flex-col justify-center gap-8 md:min-h-[calc(100vh-8.75rem)] md:gap-10 lg:gap-12">
+            <div className="flex flex-col items-center text-center">
+              <h1 className="font-serif font-normal text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] text-text-primary">
                 Barış
               </h1>
-              <h1 className="font-serif font-normal italic text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] text-accent">
+              <h1 className="font-serif font-normal italic text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] text-accent">
                 Köse
               </h1>
             </div>
-            <div className="w-[240px] h-[360px] sm:w-[280px] sm:h-[420px] md:w-[320px] md:h-[480px] relative flex-shrink-0 animate-character-float">
-              <Image
-                src="/baris-idle.png"
-                alt="Barış Köse pixel art character"
-                fill
-                className="object-contain pixel-art"
-                priority
-              />
+
+            <div className="flex flex-col items-center gap-4 md:gap-6">
+              <h2 className="font-serif italic text-4xl md:text-5xl lg:text-6xl text-text-primary text-center">
+                {t.projectsTitle}
+              </h2>
+
+              <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-6">
+                {projects[language].map((project, index) => {
+                  const isDataFelix = index === 2;
+
+                  return (
+                    <a
+                      key={project.title}
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="focus-ring relative flex flex-col gap-4 rounded-3xl bg-bg-surface p-6 md:p-7 lg:p-8 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+                    >
+                      {isDataFelix && (
+                        <Image
+                          src="/baris-idle.png"
+                          alt=""
+                          aria-hidden="true"
+                          width={128}
+                          height={192}
+                          priority
+                          draggable={false}
+                          className="pixel-art pointer-events-none absolute bottom-[calc(100%-6px)] right-2 z-10 h-auto w-20 select-none sm:w-24 md:w-28 lg:right-4 lg:w-32"
+                        />
+                      )}
+
+                      <h3 className="font-serif text-2xl text-text-primary">
+                        {project.title}
+                      </h3>
+                      <p className="flex-1 font-sans text-sm leading-relaxed text-text-secondary">
+                        {project.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {project.stack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="rounded-full bg-accent-soft px-2 py-0.5 font-sans text-[11px] text-accent"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -160,42 +203,6 @@ export default function Home() {
             language={language}
             onClose={() => setModalOpen(false)}
           />
-        </section>
-
-        <section className="py-16 md:py-24 lg:py-28 px-5 md:px-8">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="font-serif italic text-4xl md:text-5xl lg:text-6xl text-text-primary mb-10 md:mb-14 text-center">
-              {t.projectsTitle}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-              {projects[language].map((project) => (
-                <a
-                  key={project.title}
-                  href={project.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="focus-ring flex flex-col gap-4 rounded-3xl bg-bg-surface p-6 md:p-8 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
-                >
-                  <h3 className="font-serif text-2xl text-text-primary">
-                    {project.title}
-                  </h3>
-                  <p className="flex-1 font-sans text-sm leading-relaxed text-text-secondary">
-                    {project.description}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {project.stack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="rounded-full bg-accent-soft px-2 py-0.5 font-sans text-[11px] text-accent"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
         </section>
 
         <section className="py-16 md:py-24 lg:py-28 px-5 md:px-8 bg-bg-primary">
