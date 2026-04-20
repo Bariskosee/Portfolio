@@ -6,6 +6,7 @@ import Image from "next/image";
 import AboutModal from "./components/AboutModal";
 import { SkillSphere } from "./components/SkillSphere";
 import WireframeSphere from "./components/WireframeSphere";
+import WhoamiCard from "./components/WhoamiCard";
 
 const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
   ssr: false,
@@ -87,16 +88,8 @@ export default function Home() {
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <ParticleFloor />
       </div>
-      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-4 md:px-8 md:py-6 backdrop-blur-sm">
-        <button
-          onClick={() => setModalOpen(true)}
-          aria-haspopup="dialog"
-          aria-controls="about-panel"
-          className="focus-ring flex items-center gap-1.5 rounded-full border border-[rgba(45,95,76,0.3)] bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] transition-colors duration-200 hover:bg-accent hover:text-bg-primary"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-          {t.aboutCta}
-        </button>
+      <WhoamiCard language={language} />
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-end px-5 py-4 md:px-8 md:py-6 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div
             role="group"
