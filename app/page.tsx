@@ -260,7 +260,7 @@ export default function Home() {
 
           </section>
 
-          <section className="section-shell bg-bg-primary">
+          <section className="section-shell">
             <div className="mx-auto flex w-full max-w-[880px] flex-col items-center gap-2">
 
               <motion.div
