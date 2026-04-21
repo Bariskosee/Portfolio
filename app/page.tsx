@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import AboutModal from "./components/AboutModal";
+import MatrixName from "./components/MatrixName";
 import { SkillSphere } from "./components/SkillSphere";
 import WireframeSphere from "./components/WireframeSphere";
 import WhoamiCard from "./components/WhoamiCard";
@@ -180,10 +181,21 @@ export default function Home() {
                 animate="show"
               >
                 <h1 className="font-serif text-[3.1rem] leading-[0.92] font-normal tracking-tight text-text-primary sm:text-[4rem] md:text-[5.1rem] lg:text-[6.2rem]">
-                  Barış
+                  <MatrixName
+                    text="Barış"
+                    durationMs={1100}
+                    reducedMotion={!!reduceMotion}
+                    once
+                  />
                 </h1>
                 <h1 className="font-serif text-[3.1rem] leading-[0.92] font-normal italic tracking-tight text-accent sm:text-[4rem] md:text-[5.1rem] lg:text-[6.2rem]">
-                  Köse
+                  <MatrixName
+                    text="Köse"
+                    durationMs={900}
+                    startDelayMs={1200}
+                    reducedMotion={!!reduceMotion}
+                    once
+                  />
                 </h1>
               </motion.div>
 

@@ -28,6 +28,10 @@
   --duration-fast: 200ms;
   --duration-base: 260ms;
   --duration-slow: 320ms;
+  --matrix-primary: #b9c1cf;
+  --matrix-accent: #ccd3df;
+  --matrix-glow-primary: rgba(185, 193, 207, 0.32);
+  --matrix-glow-accent: rgba(204, 211, 223, 0.36);
   --space-section-y: clamp(3.5rem, 8vw, 7rem);
   --space-section-x: clamp(1.2rem, 3.5vw, 2.25rem);
   --background: oklch(1 0 0);
@@ -198,6 +202,18 @@
   background: var(--surface-raised);
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-card);
+}
+
+@utility matrix-text {
+  color: var(--matrix-primary);
+  text-shadow: 0 0 10px var(--matrix-glow-primary);
+  transition: color var(--duration-base) var(--ease-standard), text-shadow var(--duration-base) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);
+}
+
+@utility matrix-text-accent {
+  color: var(--matrix-accent);
+  text-shadow: 0 0 10px var(--matrix-glow-accent);
+  transition: color var(--duration-base) var(--ease-standard), text-shadow var(--duration-base) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);
 }
 
 @utility shadow-retro {
