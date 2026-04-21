@@ -270,7 +270,7 @@ export default function Home() {
                 viewport={{ once: true, amount: 0.6 }}
                 transition={{ duration: reduceMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
               >
-                <h2 className="font-serif text-[clamp(1.8rem,3vw,2.4rem)] font-medium italic leading-[1.2] text-text-secondary">
+                <h2 className="font-serif text-[clamp(2.2rem,4vw,3.2rem)] font-medium italic leading-[1.2] text-text-secondary">
                   {t.technologiesTitle}
                 </h2>
                 <motion.p
