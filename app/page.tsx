@@ -5,8 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import MatrixName from "./components/MatrixName";
-import { SkillSphere } from "./components/SkillSphere";
-import WireframeSphere from "./components/WireframeSphere";
+import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
 
 const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
@@ -268,23 +267,18 @@ export default function Home() {
             viewport={{ once: true, amount: 0.22 }}
             transition={{ duration: reduceMotion ? 0 : 0.58, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-4">
-              <h2 className="mb-1 text-center font-serif text-[2.1rem] font-medium italic leading-tight text-text-secondary md:text-[2.55rem]">
-                {t.technologiesTitle}
-              </h2>
-              <p className="mb-5 font-sans text-xs tracking-[0.15em] text-text-muted md:text-sm">
-                {t.dragHint}
-              </p>
-              <div className="relative flex w-full items-center justify-center overflow-hidden rounded-3xl border border-border-soft bg-bg-panel/45 py-8 shadow-soft md:py-10">
-                <div
-                  className="pointer-events-none absolute inset-0 flex items-center justify-center text-accent"
-                  style={{ opacity: 0.13 }}
-                >
-                  <WireframeSphere size={420} className="sphere-rotate" />
-                </div>
-                <div className="relative z-10">
-                  <SkillSphere />
-                </div>
+            <div className="mx-auto flex w-full max-w-[880px] flex-col items-center gap-2">
+              <div className="text-center">
+                <h2 className="font-serif text-[clamp(1.8rem,3vw,2.4rem)] font-medium italic leading-[1.2] text-text-secondary">
+                  {t.technologiesTitle}
+                </h2>
+                <p className="mt-1.5 font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted">
+                  tools &amp; stack
+                </p>
+              </div>
+
+              <div className="mt-7 w-full">
+                <TechSphere />
               </div>
             </div>
           </motion.section>
