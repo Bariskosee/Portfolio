@@ -119,7 +119,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="fixed left-0 right-0 bottom-0 z-0 pointer-events-none" style={{ top: "-80px" }}>
         <ParticleFloor />
       </div>
       <div className="relative z-10">

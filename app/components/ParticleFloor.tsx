@@ -4,91 +4,107 @@ import { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+function makeTexture() {
+  const texCanvas = document.createElement('canvas');
+  texCanvas.width = 64;
+  texCanvas.height = 64;
+  const ctx = texCanvas.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.5, 'rgba(255,255,255,0.5)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 64, 64);
+  const tex = new THREE.CanvasTexture(texCanvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 function ParticleCloud({ reduced }: { reduced: boolean }) {
   const { scene } = useThree();
-  const pointsRef = useRef<THREE.Points | null>(null);
-  const origRef = useRef<Float32Array | null>(null);
+  const smallRef = useRef<THREE.Points | null>(null);
+  const largeRef = useRef<THREE.Points | null>(null);
+  const smallOrigRef = useRef<Float32Array | null>(null);
+  const largeOrigRef = useRef<Float32Array | null>(null);
 
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
-    const count = isMobile ? 1500 : 3000;
+    const smallCount = isMobile ? 1500 : 3000;
+    const largeCount = isMobile ? 40 : 70;
 
-    const positions = new Float32Array(count * 3);
-    const orig = new Float32Array(count * 3);
+    const tex = makeTexture();
 
-    for (let i = 0; i < count; i++) {
+    // Small particles (original)
+    const smallPos = new Float32Array(smallCount * 3);
+    const smallOrig = new Float32Array(smallCount * 3);
+    for (let i = 0; i < smallCount; i++) {
       const x = (Math.random() - 0.5) * 30;
-      const y = (Math.random() - 0.5) * 16;
+      const y = (Math.random() - 0.5) * 22;
       const z = Math.random() * 15 - 10;
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
-      orig[i * 3] = x;
-      orig[i * 3 + 1] = y;
-      orig[i * 3 + 2] = z;
+      smallPos[i * 3] = x; smallPos[i * 3 + 1] = y; smallPos[i * 3 + 2] = z;
+      smallOrig[i * 3] = x; smallOrig[i * 3 + 1] = y; smallOrig[i * 3 + 2] = z;
     }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    const texCanvas = document.createElement('canvas');
-    texCanvas.width = 64;
-    texCanvas.height = 64;
-    const ctx = texCanvas.getContext('2d')!;
-    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(255,255,255,1)');
-    gradient.addColorStop(0.5, 'rgba(255,255,255,0.5)');
-    gradient.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 64, 64);
-    const tex = new THREE.CanvasTexture(texCanvas);
-    tex.needsUpdate = true;
-
-    const mat = new THREE.PointsMaterial({
-      size: 0.03,
-      sizeAttenuation: true,
-      transparent: true,
-      opacity: 0.6,
-      color: '#4a7a5e',
-      map: tex,
-      alphaTest: 0.01,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
+    const smallGeo = new THREE.BufferGeometry();
+    smallGeo.setAttribute('position', new THREE.BufferAttribute(smallPos, 3));
+    const smallMat = new THREE.PointsMaterial({
+      size: 0.03, sizeAttenuation: true, transparent: true,
+      opacity: 0.6, color: '#4a7a5e', map: tex,
+      alphaTest: 0.01, depthWrite: false, blending: THREE.NormalBlending,
     });
+    const smallPoints = new THREE.Points(smallGeo, smallMat);
+    scene.add(smallPoints);
+    smallRef.current = smallPoints;
+    smallOrigRef.current = smallOrig;
 
-    const points = new THREE.Points(geo, mat);
-    scene.add(points);
-    pointsRef.current = points;
-    origRef.current = orig;
+    // Large accent particles
+    const largePos = new Float32Array(largeCount * 3);
+    const largeOrig = new Float32Array(largeCount * 3);
+    for (let i = 0; i < largeCount; i++) {
+      const x = (Math.random() - 0.5) * 28;
+      const y = (Math.random() - 0.5) * 20;
+      const z = Math.random() * 12 - 8;
+      largePos[i * 3] = x; largePos[i * 3 + 1] = y; largePos[i * 3 + 2] = z;
+      largeOrig[i * 3] = x; largeOrig[i * 3 + 1] = y; largeOrig[i * 3 + 2] = z;
+    }
+    const largeGeo = new THREE.BufferGeometry();
+    largeGeo.setAttribute('position', new THREE.BufferAttribute(largePos, 3));
+    const largeMat = new THREE.PointsMaterial({
+      size: 0.18, sizeAttenuation: true, transparent: true,
+      opacity: 0.45, color: '#4a7a5e', map: tex,
+      alphaTest: 0.01, depthWrite: false, blending: THREE.NormalBlending,
+    });
+    const largePoints = new THREE.Points(largeGeo, largeMat);
+    scene.add(largePoints);
+    largeRef.current = largePoints;
+    largeOrigRef.current = largeOrig;
 
     return () => {
-      scene.remove(points);
-      geo.dispose();
+      scene.remove(smallPoints); smallGeo.dispose(); smallMat.dispose();
+      scene.remove(largePoints); largeGeo.dispose(); largeMat.dispose();
       tex.dispose();
-      mat.dispose();
     };
   }, [scene]);
 
   useFrame(({ clock }) => {
-    const points = pointsRef.current;
-    const orig = origRef.current;
-    if (reduced || !points || !orig) return;
-
+    if (reduced) return;
     const t = clock.getElapsedTime();
-    const attr = points.geometry.attributes.position as THREE.BufferAttribute;
-    const arr = attr.array as Float32Array;
-    const n = arr.length / 3;
 
-    for (let i = 0; i < n; i++) {
-      const ox = orig[i * 3];
-      const oy = orig[i * 3 + 1];
-      const oz = orig[i * 3 + 2];
-      arr[i * 3] = ox + Math.cos(oz * 0.2 + t * 0.2) * 0.1;
-      arr[i * 3 + 1] = oy + Math.sin(ox * 0.2 + t * 0.3) * 0.15;
-    }
-    attr.needsUpdate = true;
+    const animatePoints = (pts: THREE.Points | null, orig: Float32Array | null, speed = 1) => {
+      if (!pts || !orig) return;
+      const attr = pts.geometry.attributes.position as THREE.BufferAttribute;
+      const arr = attr.array as Float32Array;
+      const n = arr.length / 3;
+      for (let i = 0; i < n; i++) {
+        const ox = orig[i * 3], oy = orig[i * 3 + 1], oz = orig[i * 3 + 2];
+        arr[i * 3]     = ox + Math.cos(oz * 0.2 + t * 0.2 * speed) * 0.1;
+        arr[i * 3 + 1] = oy + Math.sin(ox * 0.2 + t * 0.3 * speed) * 0.15;
+      }
+      attr.needsUpdate = true;
+      pts.rotation.y = t * 0.02;
+    };
 
-    points.rotation.y = t * 0.02;
+    animatePoints(smallRef.current, smallOrigRef.current, 1);
+    animatePoints(largeRef.current, largeOrigRef.current, 0.7);
   });
 
   return null;
