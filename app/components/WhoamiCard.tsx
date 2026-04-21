@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
+import { motion, useDragControls } from 'framer-motion';
 
 type CardState = 'open' | 'panel' | 'closed';
 type DisplayMode = 'card' | 'panel' | 'pill' | 'sideTab';
@@ -14,13 +15,22 @@ interface WhoamiCardProps {
 export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
   const [cardState, setCardState] = useState<CardState>('open');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
+  const [dragConstraints, setDragConstraints] = useState({
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  });
   const [portraitFailed, setPortraitFailed] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
 
+  const dragControls = useDragControls();
   const cardRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +74,36 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
     }
   }, []);
 
+  const updateDragConstraints = useCallback(() => {
+    if (!cardRef.current) return;
+
+    const rect = cardRef.current.getBoundingClientRect();
+    const isMobile = window.innerWidth < 640;
+    const baseTop = isMobile ? 12 : 24;
+    const baseLeft = isMobile ? 12 : 24;
+    const safeMargin = 8;
+
+    const left = -baseLeft + safeMargin;
+    const top = -baseTop + safeMargin;
+    const right = Math.max(
+      left,
+      window.innerWidth - baseLeft - rect.width - safeMargin,
+    );
+    const bottom = Math.max(
+      top,
+      window.innerHeight - baseTop - rect.height - safeMargin,
+    );
+
+    const boundedX = Math.min(Math.max(dragPosition.x, left), right);
+    const boundedY = Math.min(Math.max(dragPosition.y, top), bottom);
+
+    if (boundedX !== dragPosition.x || boundedY !== dragPosition.y) {
+      setDragPosition({ x: boundedX, y: boundedY });
+    }
+
+    setDragConstraints({ left, right, top, bottom });
+  }, [dragPosition.x, dragPosition.y]);
+
   // Compute panel position when it opens; re-compute on resize
   useEffect(() => {
     if (cardState !== 'panel') return;
@@ -71,6 +111,17 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
     window.addEventListener('resize', computePanelPosition);
     return () => window.removeEventListener('resize', computePanelPosition);
   }, [cardState, computePanelPosition]);
+
+  useEffect(() => {
+    updateDragConstraints();
+    window.addEventListener('resize', updateDragConstraints);
+    window.addEventListener('orientationchange', updateDragConstraints);
+
+    return () => {
+      window.removeEventListener('resize', updateDragConstraints);
+      window.removeEventListener('orientationchange', updateDragConstraints);
+    };
+  }, [updateDragConstraints]);
 
   // ESC → close panel back to open
   useEffect(() => {
@@ -105,6 +156,12 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
           ? 'panel'
           : 'card';
 
+  useEffect(() => {
+    if (displayMode === 'card' || displayMode === 'panel') {
+      updateDragConstraints();
+    }
+  }, [displayMode, updateDragConstraints]);
+
   const fadeMotion = reducedMotion
     ? 'transition-none'
     : 'transition-opacity duration-200 ease-out';
@@ -133,18 +190,45 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
     <>
       {/* Card — States A + B */}
       {cardState !== 'closed' && (
-        <div
+        <motion.div
           ref={cardRef}
+          drag={displayMode === 'card' && !isScrolled}
+          dragListener={false}
+          dragControls={dragControls}
+          dragConstraints={dragConstraints}
+          dragElastic={reducedMotion ? 0 : 0.12}
+          dragMomentum={false}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={(_, info) => {
+            setIsDragging(false);
+            setDragPosition((prev) => ({
+              x: prev.x + info.offset.x,
+              y: prev.y + info.offset.y,
+            }));
+          }}
+          style={{ x: dragPosition.x, y: dragPosition.y }}
           aria-label="Profile card"
           aria-hidden={displayMode === 'sideTab'}
-          className={`fixed z-50 top-3 left-3 sm:top-6 sm:left-6 flex w-28 sm:w-[188px] flex-col overflow-hidden rounded-2xl border border-accent/30 bg-bg-surface shadow-[0_8px_24px_rgba(26,29,46,0.12)] ${fadeMotion} ${
+          className={`fixed top-3 left-3 z-50 flex w-28 flex-col overflow-hidden rounded-2xl border border-accent/30 bg-bg-surface shadow-[0_8px_24px_rgba(26,29,46,0.12)] sm:top-6 sm:left-6 sm:w-[188px] ${fadeMotion} ${
+            isDragging ? 'z-[60]' : ''
+          } ${
             displayMode === 'sideTab'
               ? 'pointer-events-none opacity-0'
               : 'opacity-100'
           }`}
         >
           {/* Titlebar */}
-          <div className="flex items-center justify-end border-b border-accent/15 px-2 py-1.5">
+          <div
+            className={`flex items-center justify-end border-b border-accent/15 px-2 py-1.5 ${
+              displayMode === 'card' ? 'cursor-grab active:cursor-grabbing' : ''
+            }`}
+            style={{ touchAction: 'none' }}
+            onPointerDown={(e) => {
+              if (displayMode !== 'card') return;
+              if ((e.target as HTMLElement).closest('button')) return;
+              dragControls.start(e);
+            }}
+          >
             <button
               type="button"
               onClick={() => setCardState('closed')}
@@ -201,7 +285,7 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
           >
             {aboutLabel}
           </button>
-        </div>
+        </motion.div>
       )}
 
       {/* About panel — State B */}
