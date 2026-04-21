@@ -260,28 +260,42 @@ export default function Home() {
 
           </section>
 
-          <motion.section
-            className="section-shell bg-bg-primary"
-            initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.22 }}
-            transition={{ duration: reduceMotion ? 0 : 0.58, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <section className="section-shell bg-bg-primary">
             <div className="mx-auto flex w-full max-w-[880px] flex-col items-center gap-2">
-              <div className="text-center">
+
+              <motion.div
+                className="text-center"
+                initial={{ opacity: 0, y: reduceMotion ? 0 : 44 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ duration: reduceMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <h2 className="font-serif text-[clamp(1.8rem,3vw,2.4rem)] font-medium italic leading-[1.2] text-text-secondary">
                   {t.technologiesTitle}
                 </h2>
-                <p className="mt-1.5 font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted">
+                <motion.p
+                  className="mt-1.5 font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted"
+                  initial={{ opacity: 0, y: reduceMotion ? 0 : 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.6, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+                >
                   tools &amp; stack
-                </p>
-              </div>
+                </motion.p>
+              </motion.div>
 
-              <div className="mt-7 w-full">
+              <motion.div
+                className="mt-7 w-full"
+                initial={{ opacity: 0, y: reduceMotion ? 0 : 56 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.12 }}
+                transition={{ duration: reduceMotion ? 0 : 0.88, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <TechSphere />
-              </div>
+              </motion.div>
+
             </div>
-          </motion.section>
+          </section>
 
           <footer className="px-5 pb-12 pt-8 text-center md:px-8 md:pt-10 bg-bg-primary">
             <p className="font-sans text-sm tracking-wide text-text-muted">
