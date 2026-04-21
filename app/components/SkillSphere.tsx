@@ -41,12 +41,21 @@ export function SkillSphere() {
   const loadedRef = useRef<boolean[]>([]);
   const rotRef = useRef({ x: 0.3, y: 0 });
   const animRef = useRef(0);
+  const entranceStartedAtRef = useRef<number | null>(null);
+  const projectedRef = useRef<Array<{ id: number; x: number; y: number; z: number; radius: number }>>([]);
+  const pointerIdRef = useRef<number | null>(null);
+  const hoveredIconIdRef = useRef<number | null>(null);
 
   const [canvasSize, setCanvasSize] = useState(420);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [lastMouse, setLastMouse] = useState({ x: 0, y: 0 });
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [hoveredIconId, setHoveredIconId] = useState<number | null>(null);
+
+  useEffect(() => {
+    hoveredIconIdRef.current = hoveredIconId;
+  }, [hoveredIconId]);
 
   const positions: Pos3D[] = useMemo(() => {
     const n = ICONS.length;
@@ -81,6 +90,12 @@ export function SkillSphere() {
       window.removeEventListener("resize", updateSize);
       mediaQuery.removeEventListener("change", updateMotionPreference);
     };
+  }, []);
+
+  useEffect(() => {
+    if (entranceStartedAtRef.current === null) {
+      entranceStartedAtRef.current = performance.now();
+    }
   }, []);
 
   /* pre-render each icon onto an offscreen canvas */
@@ -119,6 +134,13 @@ export function SkillSphere() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const startedAt = entranceStartedAtRef.current ?? performance.now();
+      const entranceDuration = reduceMotion ? 0 : 1000;
+      const rawProgress = entranceDuration === 0
+        ? 1
+        : Math.min((performance.now() - startedAt) / entranceDuration, 1);
+      const entranceProgress = 1 - Math.pow(1 - rawProgress, 3);
+
       const mdx = mousePos.x - cx;
       const mdy = mousePos.y - cy;
       const maxD = Math.sqrt(cx * cx + cy * cy);
@@ -137,10 +159,31 @@ export function SkillSphere() {
       const sinY = Math.sin(rotRef.current.y);
 
       const projected = positions.map(({ x, y, z, id }) => {
-        const rx = x * cosY - z * sinY;
-        const rz = x * sinY + z * cosY;
-        const ry = y * cosX + rz * sinX;
+        const introFactor = 1.75 + (id % 3) * 0.07;
+        const ix = x * introFactor;
+        const iy = y * introFactor;
+        const iz = z * introFactor;
+
+        const sx = ix + (x - ix) * entranceProgress;
+        const sy = iy + (y - iy) * entranceProgress;
+        const sz = iz + (z - iz) * entranceProgress;
+
+        const rx = sx * cosY - sz * sinY;
+        const rz = sx * sinY + sz * cosY;
+        const ry = sy * cosX + rz * sinX;
         return { rx, ry, rz, id };
+      });
+
+      projectedRef.current = projected.map(({ rx, ry, rz, id }) => {
+        const baseScale = (rz + 260) / 360;
+        const hitScale = hoveredIconIdRef.current === id ? baseScale * 1.08 : baseScale;
+        return {
+          id,
+          x: cx + rx,
+          y: cy + ry,
+          z: rz,
+          radius: Math.max(14, 25 * Math.max(0.25, hitScale) * 1.18),
+        };
       });
 
       /* back-to-front for correct overlap */
@@ -148,12 +191,16 @@ export function SkillSphere() {
 
       projected.forEach(({ rx, ry, rz, id }) => {
         const scale = (rz + 260) / 360;
+        const isHovered = hoveredIconIdRef.current === id;
+        const drawScale = scale * (isHovered ? 1.08 : 1);
         const opacity = Math.max(0.12, Math.min(1, (rz + 170) / 230));
+        const drawOpacity = isHovered ? Math.min(1, opacity + 0.2) : opacity;
+        const liftY = isHovered ? -5 : 0;
 
         ctx.save();
-        ctx.translate(cx + rx, cy + ry);
-        ctx.scale(scale, scale);
-        ctx.globalAlpha = opacity;
+        ctx.translate(cx + rx, cy + ry + liftY);
+        ctx.scale(drawScale, drawScale);
+        ctx.globalAlpha = drawOpacity;
 
         if (iconCanvasesRef.current[id] && loadedRef.current[id]) {
           ctx.drawImage(iconCanvasesRef.current[id], -25, -28, 50, 50);
@@ -163,7 +210,7 @@ export function SkillSphere() {
         ctx.font = "600 11px 'Geist', system-ui, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillStyle = "#1a1d2e";
+        ctx.fillStyle = isHovered ? "#0f172a" : "#1a1d2e";
         ctx.fillText(ICONS[id].label, 0, 26);
 
         ctx.restore();
@@ -176,15 +223,46 @@ export function SkillSphere() {
     return () => cancelAnimationFrame(animRef.current);
   }, [positions, isDragging, mousePos, reduceMotion]);
 
-  /* ── event handlers ── */
-  const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setIsDragging(true);
-    setLastMouse({ x: e.clientX, y: e.clientY });
+  const pickHoveredIcon = (x: number, y: number) => {
+    let candidate: { id: number; z: number } | null = null;
+
+    for (const icon of projectedRef.current) {
+      const dx = x - icon.x;
+      const dy = y - icon.y;
+      const hit = dx * dx + dy * dy <= icon.radius * icon.radius;
+      if (!hit) continue;
+      if (!candidate || icon.z > candidate.z) {
+        candidate = { id: icon.id, z: icon.z };
+      }
+    }
+
+    setHoveredIconId(candidate?.id ?? null);
   };
 
-  const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  /* ── event handlers ── */
+  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    pointerIdRef.current = e.pointerId;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDragging(true);
+    setLastMouse({ x: e.clientX, y: e.clientY });
     const rect = canvasRef.current?.getBoundingClientRect();
-    if (rect) setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    if (rect) {
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      setMousePos({ x: px, y: py });
+      pickHoveredIcon(px, py);
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect) {
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      setMousePos({ x: px, y: py });
+      pickHoveredIcon(px, py);
+    }
+
     if (isDragging) {
       rotRef.current = {
         x: rotRef.current.x + (e.clientY - lastMouse.y) * 0.005,
@@ -194,7 +272,14 @@ export function SkillSphere() {
     }
   };
 
-  const onMouseUp = () => setIsDragging(false);
+  const endPointerInteraction = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    setIsDragging(false);
+    if (pointerIdRef.current !== null && e.currentTarget.hasPointerCapture(pointerIdRef.current)) {
+      e.currentTarget.releasePointerCapture(pointerIdRef.current);
+    }
+    pointerIdRef.current = null;
+    setHoveredIconId(null);
+  };
 
   return (
     <div className="mx-auto w-full max-w-[420px]">
@@ -202,11 +287,17 @@ export function SkillSphere() {
         ref={canvasRef}
         width={canvasSize}
         height={canvasSize}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        className={`w-full h-auto ${isDragging ? "cursor-grabbing opacity-90" : "cursor-grab"}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endPointerInteraction}
+        onPointerCancel={endPointerInteraction}
+        onPointerLeave={() => {
+          if (!isDragging) {
+            setHoveredIconId(null);
+          }
+        }}
+        className={`h-auto w-full ${isDragging ? "cursor-grabbing opacity-90" : "cursor-grab"}`}
+        style={{ touchAction: "none" }}
         aria-label="3D rotating skill sphere: Git, GitHub, Docker, Java, Python"
         role="img"
       />

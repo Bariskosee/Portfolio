@@ -21,10 +21,46 @@ const FAVICON_VERSION = "20260420";
 
 const withVersion = (path: string) => `${path}?v=${FAVICON_VERSION}`;
 
+const BASE_URL = "https://bariskose.dev";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: "Barış Köse — Software Engineer",
   description:
-    "Building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
+    "Software engineering student building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
+  keywords: [
+    "Barış Köse",
+    "software engineer",
+    "distributed systems",
+    "AI/ML",
+    "backend",
+    "Python",
+    "FastAPI",
+    "Kafka",
+    "Next.js",
+    "portfolio",
+  ],
+  authors: [{ name: "Barış Köse", url: BASE_URL }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    url: BASE_URL,
+    siteName: "Barış Köse",
+    title: "Barış Köse — Software Engineer",
+    description:
+      "Software engineering student building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "Barış Köse — Software Engineer",
+    description:
+      "Software engineering student building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
+  },
   icons: {
     shortcut: [{ url: withVersion("/favicon/favicon-96x96.png"), type: "image/png" }],
     icon: [

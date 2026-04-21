@@ -4,7 +4,6 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import AboutModal from "./components/AboutModal";
 import MatrixName from "./components/MatrixName";
 import { SkillSphere } from "./components/SkillSphere";
 import WireframeSphere from "./components/WireframeSphere";
@@ -81,7 +80,6 @@ const copy = {
 } as const;
 
 export default function Home() {
-  const [modalOpen, setModalOpen] = useState(false);
   const [language, setLanguage] = useState<"EN" | "TR">("TR");
   const reduceMotion = useReducedMotion();
   const t = copy[language];
@@ -261,11 +259,6 @@ export default function Home() {
               </motion.div>
             </div>
 
-            <AboutModal
-              isOpen={modalOpen}
-              language={language}
-              onClose={() => setModalOpen(false)}
-            />
           </section>
 
           <motion.section
