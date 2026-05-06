@@ -1,34 +1,43 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  siPython, siTypescript, siReact, siNextdotjs, siApachekafka,
+  siDocker, siFastapi, siRedis, siPytorch, siOpenjdk, siSpring,
+  siPostgresql, siLinux, siGit, siNodedotjs,
+} from "simple-icons";
 
-const TECHS = [
-  { name: "Python", mark: "Py", color: "#3776ab", textColor: "#ffffff" },
-  { name: "TypeScript", mark: "TS", color: "#3178c6", textColor: "#ffffff" },
-  { name: "React", mark: "Re", color: "#61dafb", textColor: "#10212a" },
-  { name: "Next.js", mark: "N", color: "#111111", textColor: "#ffffff" },
-  { name: "Kafka", mark: "Kf", color: "#2f2f35", textColor: "#ffffff" },
-  { name: "Docker", mark: "Do", color: "#2496ed", textColor: "#ffffff" },
-  { name: "FastAPI", mark: "Fa", color: "#009688", textColor: "#ffffff" },
-  { name: "Redis", mark: "Rd", color: "#dc382d", textColor: "#ffffff" },
-  { name: "PyTorch", mark: "Pt", color: "#ee4c2c", textColor: "#ffffff" },
-  { name: "Java", mark: "Ja", color: "#e76f00", textColor: "#ffffff" },
-  { name: "Spring", mark: "Sp", color: "#6db33f", textColor: "#10212a" },
-  { name: "PostgreSQL", mark: "Pg", color: "#336791", textColor: "#ffffff" },
-  { name: "Linux", mark: "Ln", color: "#f4c542", textColor: "#1b1b1b" },
-  { name: "Git", mark: "Git", color: "#f05032", textColor: "#ffffff" },
-  { name: "Node.js", mark: "Nd", color: "#5fa04e", textColor: "#10212a" },
+type SimpleIcon = { path: string };
+
+const TECHS: {
+  name: string;
+  icon: SimpleIcon;
+  color: string;
+  textColor: string;
+  mark: string;
+}[] = [
+  { name: "Python",     mark: "Py", icon: siPython,      color: "#3776ab", textColor: "#ffffff" },
+  { name: "TypeScript", mark: "TS", icon: siTypescript,   color: "#3178c6", textColor: "#ffffff" },
+  { name: "React",      mark: "Re", icon: siReact,        color: "#61dafb", textColor: "#10212a" },
+  { name: "Next.js",    mark: "N",  icon: siNextdotjs,    color: "#111111", textColor: "#ffffff" },
+  { name: "Kafka",      mark: "Kf", icon: siApachekafka,  color: "#2f2f35", textColor: "#ffffff" },
+  { name: "Docker",     mark: "Do", icon: siDocker,        color: "#2496ed", textColor: "#ffffff" },
+  { name: "FastAPI",    mark: "Fa", icon: siFastapi,       color: "#009688", textColor: "#ffffff" },
+  { name: "Redis",      mark: "Rd", icon: siRedis,         color: "#dc382d", textColor: "#ffffff" },
+  { name: "PyTorch",    mark: "Pt", icon: siPytorch,       color: "#ee4c2c", textColor: "#ffffff" },
+  { name: "Java",       mark: "Ja", icon: siOpenjdk,       color: "#e76f00", textColor: "#ffffff" },
+  { name: "Spring",     mark: "Sp", icon: siSpring,        color: "#6db33f", textColor: "#10212a" },
+  { name: "PostgreSQL", mark: "Pg", icon: siPostgresql,    color: "#336791", textColor: "#ffffff" },
+  { name: "Linux",      mark: "Ln", icon: siLinux,         color: "#f4c542", textColor: "#1b1b1b" },
+  { name: "Git",        mark: "Gt", icon: siGit,           color: "#f05032", textColor: "#ffffff" },
+  { name: "Node.js",    mark: "Nd", icon: siNodedotjs,     color: "#5fa04e", textColor: "#10212a" },
 ];
 
 interface Orbit {
-  cx: number;
-  cy: number;
-  ax: number;
-  ay: number;
-  fx: number;
-  fy: number;
-  phase: number;
-  phaseY: number;
+  cx: number; cy: number;
+  ax: number; ay: number;
+  fx: number; fy: number;
+  phase: number; phaseY: number;
   z: number;
 }
 
@@ -53,6 +62,13 @@ function genOrbits(count: number): Orbit[] {
 
 const ORBITS = genOrbits(TECHS.length);
 const ICON_SIZE = 46;
+
+function makeSvgImage(tech: (typeof TECHS)[number]): HTMLImageElement {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="${tech.textColor}" d="${tech.icon.path}"/></svg>`;
+  const img = new Image();
+  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  return img;
+}
 
 export function TechSphere() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -90,18 +106,23 @@ export function TechSphere() {
     if (!ctxNullable) return;
     const ctx = ctxNullable;
 
+    // Pre-load all SVG icons as images
+    const iconImgs = TECHS.map(makeSvgImage);
+
     function drawBadge(
       x: number,
       y: number,
       size: number,
-      tech: (typeof TECHS)[number],
+      techIndex: number,
       isHovered: boolean,
     ) {
+      const tech = TECHS[techIndex];
       const radius = size * 0.24;
       const half = size / 2;
 
       ctx.save();
       ctx.translate(x, y);
+
       if (isHovered) {
         const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.9);
         grad.addColorStop(0, "rgba(138,162,198,0.24)");
@@ -112,6 +133,7 @@ export function TechSphere() {
         ctx.fill();
       }
 
+      // Badge background
       ctx.fillStyle = tech.color;
       ctx.beginPath();
       ctx.roundRect(-half, -half, size, size, radius);
@@ -121,11 +143,19 @@ export function TechSphere() {
       ctx.lineWidth = Math.max(1, size * 0.035);
       ctx.stroke();
 
-      ctx.fillStyle = tech.textColor;
-      ctx.font = `700 ${Math.max(11, size * 0.38)}px Geist, system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(tech.mark, 0, 1);
+      // Icon: SVG logo if loaded, fallback to text
+      const img = iconImgs[techIndex];
+      const iconSize = size * 0.62;
+      if (img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
+      } else {
+        ctx.fillStyle = tech.textColor;
+        ctx.font = `700 ${Math.max(11, size * 0.38)}px Geist, system-ui, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(tech.mark, 0, 1);
+      }
+
       ctx.restore();
     }
 
@@ -152,6 +182,7 @@ export function TechSphere() {
 
       const sorted = [...positions].sort((a, b) => a.depth - b.depth);
 
+      // Connection lines
       for (let a = 0; a < sorted.length; a++) {
         for (let b = a + 1; b < sorted.length; b++) {
           const pa = sorted[a];
@@ -172,6 +203,7 @@ export function TechSphere() {
         }
       }
 
+      // Hover detection
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
       let newHovered: number | null = null;
@@ -189,15 +221,15 @@ export function TechSphere() {
         setHovered(newHovered);
       }
 
+      // Draw badges
       for (const pos of sorted) {
         const { x, y, depth, i } = pos;
-        const tech = TECHS[i];
         const isHovered = hoveredRef.current === i;
         const size = ICON_SIZE * depth * (isHovered ? 1.18 : 1);
         const opacity = isHovered ? 1 : 0.45 + depth * 0.55;
 
         ctx.globalAlpha = opacity;
-        drawBadge(x, y, size, tech, isHovered);
+        drawBadge(x, y, size, i, isHovered);
         ctx.globalAlpha = 1;
 
         if (isHovered) {
@@ -205,13 +237,13 @@ export function TechSphere() {
           ctx.textAlign = "center";
           ctx.textBaseline = "top";
           const labelY = y + size / 2 + 5;
-          const tw = ctx.measureText(tech.name).width;
+          const tw = ctx.measureText(TECHS[i].name).width;
           ctx.fillStyle = "rgba(252,252,249,0.94)";
           ctx.beginPath();
           ctx.roundRect(x - tw / 2 - 6, labelY - 2, tw + 12, 18, 4);
           ctx.fill();
           ctx.fillStyle = "#131a27";
-          ctx.fillText(tech.name, x, labelY);
+          ctx.fillText(TECHS[i].name, x, labelY);
         }
       }
 
@@ -225,7 +257,6 @@ export function TechSphere() {
       const rect = canvas!.getBoundingClientRect();
       mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
-
     function onLeave() {
       mouseRef.current = { x: -9999, y: -9999 };
     }
