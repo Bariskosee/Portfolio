@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Barış Köse — Portfolio
 
-## Getting Started
+Personal portfolio site for Barış Köse, a software engineering student focused on distributed systems and AI/ML.
 
-First, run the development server:
+**Live:** [portfolio-three-nu-99.vercel.app](https://portfolio-three-nu-99.vercel.app)
+
+---
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack)
+- **React 19** / TypeScript (strict)
+- **Tailwind CSS v4** (CSS-first config via `globals.css`)
+- **Framer Motion** — page and section animations
+- **Three.js / @react-three/fiber** — 3D particle background
+- **Deployed on Vercel**
+
+## Local Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev       # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Quality Commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint          # ESLint
+npm run type-check    # tsc --noEmit
+npm run build         # production build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+| Variable | Purpose | Default |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL used in metadata and sitemap | `https://portfolio-three-nu-99.vercel.app` |
 
-To learn more about Next.js, take a look at the following resources:
+Copy `.env.example` to `.env.local` and fill in any overrides before running locally.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  layout.tsx          # Root layout, fonts, metadata
+  page.tsx            # Single-page home (hero, projects, technologies)
+  globals.css         # Tailwind + design tokens (CSS variables)
+  components/         # All UI components
+lib/
+  site.ts             # Shared metadata constants
+  social-image.tsx    # OG / Twitter card image generator
+public/               # Static assets (sprites, favicon)
+```
