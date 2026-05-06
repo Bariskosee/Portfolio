@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { Fraunces, Geist, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -21,26 +26,18 @@ const FAVICON_VERSION = "20260420";
 
 const withVersion = (path: string) => `${path}?v=${FAVICON_VERSION}`;
 
-const BASE_URL = "https://bariskose.dev";
+const ogImage = "/opengraph-image";
+const twitterImage = "/twitter-image";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
-  title: "Barış Köse — Software Engineer",
-  description:
-    "Software engineering student building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
-  keywords: [
-    "Barış Köse",
-    "software engineer",
-    "distributed systems",
-    "AI/ML",
-    "backend",
-    "Python",
-    "FastAPI",
-    "Kafka",
-    "Next.js",
-    "portfolio",
-  ],
-  authors: [{ name: "Barış Köse", url: BASE_URL }],
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  alternates: {
+    canonical: "/",
+  },
   robots: {
     index: true,
     follow: true,
@@ -48,18 +45,31 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: BASE_URL,
-    siteName: "Barış Köse",
-    title: "Barış Köse — Software Engineer",
-    description:
-      "Software engineering student building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
-    locale: "en_US",
+    url: "/",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "tr_TR",
+    alternateLocale: ["en_US"],
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} portfolio preview`,
+      },
+    ],
   },
   twitter: {
-    card: "summary",
-    title: "Barış Köse — Software Engineer",
-    description:
-      "Software engineering student building distributed systems and exploring the intersection of AI/ML and scalable infrastructure.",
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: twitterImage,
+        alt: `${SITE_NAME} portfolio preview`,
+      },
+    ],
   },
   icons: {
     shortcut: [{ url: withVersion("/favicon/favicon-96x96.png"), type: "image/png" }],
@@ -88,7 +98,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="tr"
       className={cn("h-full", "antialiased", fraunces.variable, geistSans.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>

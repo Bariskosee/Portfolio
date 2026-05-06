@@ -32,6 +32,7 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
 
   const dragControls = useDragControls();
   const cardRef = useRef<HTMLDivElement>(null);
+  const aboutButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Reduced-motion listener
@@ -64,13 +65,41 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const isMobile = window.innerWidth <= 640;
+    const margin = isMobile ? 12 : 16;
+    const headerClearance = isMobile ? 74 : 92;
+    const panelWidth = Math.min(520, window.innerWidth - margin * 2);
+    const panelMaxHeight = Math.min(380, window.innerHeight - headerClearance - margin);
 
     if (isMobile) {
-      setPanelStyle({ top: rect.bottom + 8, left: 12, right: 12 });
-    } else if (window.innerWidth - rect.right - 16 >= 300) {
-      setPanelStyle({ top: rect.top, left: rect.right + 16 });
+      const top = Math.min(rect.bottom + 8, window.innerHeight - panelMaxHeight - margin);
+      setPanelStyle({
+        top: Math.max(headerClearance, top),
+        left: margin,
+        right: margin,
+        maxHeight: panelMaxHeight,
+      });
+      return;
+    }
+
+    const top = Math.min(
+      Math.max(rect.top, headerClearance),
+      window.innerHeight - panelMaxHeight - margin,
+    );
+
+    if (window.innerWidth - rect.right - margin >= 300) {
+      setPanelStyle({
+        top,
+        left: Math.min(rect.right + margin, window.innerWidth - panelWidth - margin),
+        width: panelWidth,
+        maxHeight: panelMaxHeight,
+      });
     } else {
-      setPanelStyle({ top: rect.top, right: window.innerWidth - rect.left + 16 });
+      setPanelStyle({
+        top,
+        right: Math.min(window.innerWidth - rect.left + margin, window.innerWidth - panelWidth - margin),
+        width: panelWidth,
+        maxHeight: panelMaxHeight,
+      });
     }
   }, []);
 
@@ -108,9 +137,15 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
   useEffect(() => {
     if (cardState !== 'panel') return;
     computePanelPosition();
+    requestAnimationFrame(() => panelRef.current?.focus({ preventScroll: true }));
     window.addEventListener('resize', computePanelPosition);
     return () => window.removeEventListener('resize', computePanelPosition);
   }, [cardState, computePanelPosition]);
+
+  const closePanel = useCallback(() => {
+    setCardState('open');
+    requestAnimationFrame(() => aboutButtonRef.current?.focus({ preventScroll: true }));
+  }, []);
 
   useEffect(() => {
     updateDragConstraints();
@@ -127,11 +162,11 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
   useEffect(() => {
     if (cardState !== 'panel') return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setCardState('open');
+      if (e.key === 'Escape') closePanel();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [cardState]);
+  }, [cardState, closePanel]);
 
   // Outside-click → close panel back to open
   useEffect(() => {
@@ -139,12 +174,12 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
       if (!cardRef.current?.contains(t) && !panelRef.current?.contains(t)) {
-        setCardState('open');
+        closePanel();
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [cardState]);
+  }, [cardState, closePanel]);
 
   // Derived display mode — state machine unchanged
   const displayMode: DisplayMode =
@@ -265,7 +300,7 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
                 width={188}
                 height={188}
                 priority
-                unoptimized
+                sizes="(min-width: 640px) 188px, 112px"
                 onError={() => setPortraitFailed(true)}
                 style={{ width: '100%', height: 'auto' }}
                 className="rounded-lg pixel-art block"
@@ -275,10 +310,12 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
 
           {/* About toggle */}
           <button
+            ref={aboutButtonRef}
             type="button"
             onClick={() =>
               setCardState(cardState === 'panel' ? 'open' : 'panel')
             }
+            aria-haspopup="dialog"
             aria-expanded={cardState === 'panel'}
             aria-controls="profile-about-panel"
             className={`focus-ring w-full border-t border-accent/15 bg-bg-surface px-3 py-2 font-sans text-[10px] font-semibold tracking-widest text-[#1f4d3a] hover:bg-accent-soft sm:text-xs ${hoverMotion}`}
@@ -293,11 +330,16 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
         <div
           ref={panelRef}
           id="profile-about-panel"
-          role="region"
-          aria-label="About Barış"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="profile-about-title"
+          tabIndex={-1}
           style={panelStyle}
-          className={`fixed z-50 max-h-[380px] max-w-[520px] overflow-y-auto rounded-2xl border-2 border-accent/40 bg-bg-surface p-5 shadow-[0_8px_24px_rgba(26,29,46,0.14)] ${fadeMotion} opacity-100`}
+          className={`focus-ring fixed z-50 w-[calc(100vw-1.5rem)] max-w-[520px] overflow-y-auto rounded-2xl border-2 border-accent/40 bg-bg-surface p-5 shadow-[0_8px_24px_rgba(26,29,46,0.14)] ${fadeMotion} opacity-100`}
         >
+          <h2 id="profile-about-title" className="sr-only">
+            {language === 'TR' ? 'Barış Köse hakkında' : 'About Barış Köse'}
+          </h2>
           <p className="mb-3 font-serif text-base leading-relaxed text-text-secondary">
             {aboutCopy[0]}
           </p>
