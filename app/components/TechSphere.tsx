@@ -86,8 +86,9 @@ export function TechSphere() {
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctxNullable = canvas.getContext("2d");
+    if (!ctxNullable) return;
+    const ctx = ctxNullable;
 
     function drawBadge(
       x: number,
