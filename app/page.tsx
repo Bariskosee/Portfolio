@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import MatrixName from "./components/MatrixName";
 import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
@@ -11,6 +11,8 @@ import ProjectCard, { type ProjectCardData } from "./components/ProjectCard";
 const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
   ssr: false,
 });
+
+const easePremium = [0.22, 1, 0.36, 1] as const;
 
 const projects: Record<"EN" | "TR", ProjectCardData[]> = {
   EN: [
@@ -122,46 +124,78 @@ const copy = {
 
 export default function Home() {
   const [language, setLanguage] = useState<"EN" | "TR">("TR");
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = !!useReducedMotion();
   const t = copy[language];
 
   useEffect(() => {
     document.documentElement.lang = language === "TR" ? "tr" : "en";
   }, [language]);
 
-  const heroVariants = {
+  const revealVariants: Variants = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 18 },
     show: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: reduceMotion ? 0 : 0.62,
-        ease: [0.22, 1, 0.36, 1] as const,
+        duration: reduceMotion ? 0 : 0.56,
+        ease: easePremium,
       },
     },
   };
 
-  const gridVariants = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: reduceMotion ? 0 : 0.06,
-        delayChildren: reduceMotion ? 0 : 0.06,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: reduceMotion ? 0 : 16 },
+  const swapVariants: Variants = {
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 6 },
     show: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: reduceMotion ? 0 : 0.32,
-        ease: [0.22, 1, 0.36, 1] as const,
+        duration: reduceMotion ? 0 : 0.24,
+        ease: easePremium,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: reduceMotion ? 0 : -4,
+      transition: {
+        duration: reduceMotion ? 0 : 0.16,
+        ease: easePremium,
       },
     },
   };
+
+  const gridVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: reduceMotion ? 0 : 0.1,
+        delayChildren: reduceMotion ? 0 : 0.14,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: reduceMotion ? 0 : 8,
+      transition: {
+        duration: reduceMotion ? 0 : 0.16,
+        ease: easePremium,
+      },
+    },
+  };
+
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: reduceMotion ? 0 : 0.48,
+        ease: easePremium,
+      },
+    },
+  };
+
+  const microHover = reduceMotion ? undefined : { y: -1 };
+  const microTap = reduceMotion ? undefined : { scale: 0.98 };
 
   return (
     <>
@@ -177,10 +211,12 @@ export default function Home() {
               aria-label="Language switch"
               className="inline-flex items-center rounded-full border border-border-soft bg-surface-raised p-1 shadow-card"
             >
-              <button
+              <motion.button
                 type="button"
                 onClick={() => setLanguage("EN")}
                 aria-pressed={language === "EN"}
+                whileHover={microHover}
+                whileTap={microTap}
                 className={`focus-ring transition-premium-fast rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] ${
                   language === "EN"
                     ? "bg-accent text-bg-surface"
@@ -188,11 +224,13 @@ export default function Home() {
                 }`}
               >
                 EN
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
                 onClick={() => setLanguage("TR")}
                 aria-pressed={language === "TR"}
+                whileHover={microHover}
+                whileTap={microTap}
                 className={`focus-ring transition-premium-fast rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] ${
                   language === "TR"
                     ? "bg-accent text-bg-surface"
@@ -200,17 +238,19 @@ export default function Home() {
                 }`}
               >
                 TR
-              </button>
+              </motion.button>
             </div>
 
-            <a
+            <motion.a
               href="https://github.com/Bariskosee"
               target="_blank"
               rel="noopener noreferrer"
+              whileHover={microHover}
+              whileTap={microTap}
               className="focus-ring transition-premium-fast rounded-md px-1 font-sans text-sm text-text-secondary hover:text-accent"
             >
               GitHub ↗
-            </a>
+            </motion.a>
           </div>
         </header>
 
@@ -219,19 +259,28 @@ export default function Home() {
             <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-6xl flex-col justify-center gap-8 md:min-h-[calc(100vh-8rem)] md:gap-10 lg:gap-12">
               <motion.div
                 className="flex flex-col items-center text-center"
-                variants={heroVariants}
+                variants={revealVariants}
                 initial="hidden"
                 animate="show"
               >
-                <p className="mb-4 font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted">
-                  {t.eyebrow}
-                </p>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.p
+                    key={`hero-eyebrow-${language}`}
+                    className="mb-4 font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted"
+                    variants={swapVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                  >
+                    {t.eyebrow}
+                  </motion.p>
+                </AnimatePresence>
                 <h1 className="font-serif text-[3.1rem] leading-[0.92] font-normal tracking-tight text-text-primary sm:text-[4rem] md:text-[5.1rem] lg:text-[6.2rem]">
                   <span className="block">
                     <MatrixName
                       text="Barış"
                       durationMs={1100}
-                      reducedMotion={!!reduceMotion}
+                      reducedMotion={reduceMotion}
                       once
                     />
                   </span>
@@ -240,38 +289,62 @@ export default function Home() {
                       text="Köse"
                       durationMs={900}
                       startDelayMs={1200}
-                      reducedMotion={!!reduceMotion}
+                      reducedMotion={reduceMotion}
                       once
                     />
                   </span>
                 </h1>
-                <p className="mt-5 max-w-2xl font-sans text-base leading-relaxed text-text-secondary md:text-lg">
-                  {t.intro}
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <a
-                    href="https://github.com/Bariskosee"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="focus-ring transition-premium-fast rounded-full bg-accent px-4 py-2 font-sans text-sm font-semibold text-bg-surface hover:bg-accent-hover"
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.p
+                    key={`hero-intro-${language}`}
+                    className="mt-5 max-w-2xl font-sans text-base leading-relaxed text-text-secondary md:text-lg"
+                    variants={swapVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
                   >
-                    {t.ctaGitHub}
-                  </a>
-                  <a
-                    href="https://linkedin.com/in/barisskose/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:border-border-strong hover:text-accent"
+                    {t.intro}
+                  </motion.p>
+                </AnimatePresence>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={`hero-actions-${language}`}
+                    className="mt-6 flex flex-wrap justify-center gap-3"
+                    variants={swapVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
                   >
-                    {t.ctaLinkedIn}
-                  </a>
-                  <a
-                    href="mailto:kosebaris279@gmail.com"
-                    className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:border-border-strong hover:text-accent"
-                  >
-                    {t.ctaEmail}
-                  </a>
-                </div>
+                    <motion.a
+                      href="https://github.com/Bariskosee"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={microHover}
+                      whileTap={microTap}
+                      className="focus-ring transition-premium-fast rounded-full bg-accent px-4 py-2 font-sans text-sm font-semibold text-bg-surface hover:bg-accent-hover"
+                    >
+                      {t.ctaGitHub}
+                    </motion.a>
+                    <motion.a
+                      href="https://linkedin.com/in/barisskose/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={microHover}
+                      whileTap={microTap}
+                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:border-border-strong hover:text-accent"
+                    >
+                      {t.ctaLinkedIn}
+                    </motion.a>
+                    <motion.a
+                      href="mailto:kosebaris279@gmail.com"
+                      whileHover={microHover}
+                      whileTap={microTap}
+                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:border-border-strong hover:text-accent"
+                    >
+                      {t.ctaEmail}
+                    </motion.a>
+                  </motion.div>
+                </AnimatePresence>
               </motion.div>
 
               <motion.div
@@ -279,11 +352,18 @@ export default function Home() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.15 }}
-                variants={heroVariants}
+                variants={revealVariants}
               >
                 {/* Section header */}
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                  <div className="flex flex-col gap-3">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={`projects-copy-${language}`}
+                    className="flex flex-col gap-3"
+                    variants={swapVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                  >
                     <div className="flex items-center gap-2.5 font-sans text-[10.5px] font-semibold uppercase tracking-[0.22em] text-text-muted">
                       <span className="inline-block h-px w-6 bg-text-muted" />
                       {t.projectsEyebrow}
@@ -294,36 +374,31 @@ export default function Home() {
                     <p className="m-0 max-w-md font-sans text-sm leading-relaxed text-text-secondary">
                       {t.projectsSubtitle}
                     </p>
-                  </div>
-                  <a
-                    href="https://github.com/Bariskosee"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="focus-ring transition-premium-fast inline-flex shrink-0 items-center gap-2.5 self-start rounded-full border border-border-strong px-4 py-2.5 font-sans text-[12.5px] font-medium text-text-primary hover:border-accent hover:text-accent sm:mt-7"
-                  >
-                    {t.viewAll}
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent font-sans text-[11px] text-bg-surface">
-                      ↗
-                    </span>
-                  </a>
-                </div>
+                  </motion.div>
+                </AnimatePresence>
 
                 {/* Cards grid — extra top padding so DataFelix sprite has room above */}
-                <motion.div
-                  className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-                  style={{ paddingTop: 56 }}
-                  variants={gridVariants}
-                >
-                  {projects[language].map((project, index) => (
-                    <ProjectCard
-                      key={project.title}
-                      project={project}
-                      index={index}
-                      variants={cardVariants}
-                      reducedMotion={!!reduceMotion}
-                    />
-                  ))}
-                </motion.div>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={`project-grid-${language}`}
+                    className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                    style={{ paddingTop: 56 }}
+                    variants={gridVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                  >
+                    {projects[language].map((project, index) => (
+                      <ProjectCard
+                        key={project.title}
+                        project={project}
+                        index={index}
+                        variants={cardVariants}
+                        reducedMotion={reduceMotion}
+                      />
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
               </motion.div>
             </div>
 
@@ -334,31 +409,35 @@ export default function Home() {
 
               <motion.div
                 className="text-center"
-                initial={{ opacity: 0, y: reduceMotion ? 0 : 44 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial="hidden"
+                whileInView="show"
                 viewport={{ once: true, amount: 0.6 }}
-                transition={{ duration: reduceMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+                variants={softRevealVariants}
               >
-                <h2 className="font-serif text-[clamp(2.2rem,4vw,3.2rem)] font-medium italic leading-[1.2] text-text-secondary">
-                  {t.technologiesTitle}
-                </h2>
-                <motion.p
-                  className="mt-1.5 font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted"
-                  initial={{ opacity: 0, y: reduceMotion ? 0 : 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.6 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.6, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  tools &amp; stack
-                </motion.p>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={`tech-copy-${language}`}
+                    variants={swapVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                  >
+                    <h2 className="font-serif text-[clamp(2.2rem,4vw,3.2rem)] font-medium italic leading-[1.2] text-text-secondary">
+                      {t.technologiesTitle}
+                    </h2>
+                    <p className="mt-1.5 font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted">
+                      tools &amp; stack
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
               </motion.div>
 
               <motion.div
                 className="mt-7 w-full"
-                initial={{ opacity: 0, y: reduceMotion ? 0 : 56 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial="hidden"
+                whileInView="show"
                 viewport={{ once: true, amount: 0.12 }}
-                transition={{ duration: reduceMotion ? 0 : 0.88, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                variants={softRevealVariants}
               >
                 <TechSphere />
               </motion.div>
@@ -366,11 +445,26 @@ export default function Home() {
             </div>
           </section>
 
-          <footer className="px-5 pb-12 pt-8 text-center md:px-8 md:pt-10 bg-bg-primary">
-            <p className="font-sans text-sm tracking-wide text-text-muted">
-              {t.footer}
-            </p>
-          </footer>
+          <motion.footer
+            className="bg-bg-primary px-5 pb-12 pt-8 text-center md:px-8 md:pt-10"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.8 }}
+            variants={revealVariants}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.p
+                key={`footer-${language}`}
+                className="font-sans text-sm tracking-wide text-text-muted"
+                variants={swapVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+              >
+                {t.footer}
+              </motion.p>
+            </AnimatePresence>
+          </motion.footer>
         </main>
       </div>
     </>
