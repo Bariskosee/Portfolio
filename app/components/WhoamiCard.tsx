@@ -206,12 +206,12 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
   const aboutCopy =
     language === 'TR'
       ? [
-          'Barış Köse, Istanbul merkezli bir yazılım mühendisidir; React, TypeScript ve Next.js ile düşünülmüş ürünler geliştirmeye odaklanır.',
+          'Kodlama yoluyla bir şeyler üretmeyi, yeni teknolojiler keşfetmeyi ve her projede bir öncekinden daha iyi bir şey ortaya koymayı seviyorum. ABD\'de Work & Travel programıyla iki yaz geçirdim; Erasmus programıyla da İspanya\'da Universidad de Alicante\'de okudum.',
           'Frontend tarafında performans, erişilebilirlik ve tutarlı tasarım sistemleri üzerine çalışır; backend tarafında ise ölçeklenebilir mimariler ve temiz kod pratiklerini önemser.',
           'Hedefi, estetik olarak güçlü ve teknik olarak sürdürülebilir dijital deneyimler üretmek; her iterasyonda kullanıcı deneyimini somut olarak iyileştirmektir.',
         ]
       : [
-          'Barış Köse is a software engineer based in Istanbul, focused on building thoughtful tools with React, TypeScript, and Next.js.',
+          "I love building things through code, exploring new technologies, and shipping something better with every project. I've spent two summers in the US through Work & Travel, and studied abroad at Universidad de Alicante in Spain through the Erasmus program.",
           'He focuses on performance, accessibility, and consistent design systems on the frontend, while valuing scalable architecture and clean code practices on the backend.',
           'His goal is to build digital experiences that are visually strong and technically sustainable, improving user experience in every iteration.',
         ];

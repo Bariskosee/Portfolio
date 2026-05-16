@@ -71,7 +71,7 @@ const copy = {
   EN: {
     eyebrow: "Software Engineer · Istanbul",
     intro:
-      "I build thoughtful web interfaces and backend systems with React, TypeScript, Next.js, Python, and Java.",
+      "Software engineering student building at the intersection of distributed systems, AI/ML, and data science.",
     projectsTitle: "Projects",
     technologiesTitle: "Technologies",
     ctaGitHub: "GitHub",
@@ -82,7 +82,7 @@ const copy = {
   TR: {
     eyebrow: "Yazılım Mühendisi · Istanbul",
     intro:
-      "React, TypeScript, Next.js, Python ve Java ile düşünülmüş web arayüzleri ve backend sistemleri geliştiriyorum.",
+      "Dağıtık sistemler, yapay zeka ve veri bilimi kesişiminde ürünler geliştiren bir yazılım mühendisliği öğrencisiyim.",
     projectsTitle: "Projeler",
     technologiesTitle: "Teknolojiler",
     ctaGitHub: "GitHub",
