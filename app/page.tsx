@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, type Variants } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import MatrixName from "./components/MatrixName";
 import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
@@ -206,9 +206,6 @@ export default function Home() {
   const microHover = reduceMotion ? undefined : { y: -1 };
   const microTap = reduceMotion ? undefined : { scale: 0.98 };
 
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
-
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -218,13 +215,6 @@ export default function Home() {
 
   return (
     <>
-      {!reduceMotion && (
-        <motion.div
-          style={{ scaleX, transformOrigin: "left" }}
-          className="fixed top-0 left-0 right-0 z-[60] h-[2px] bg-accent pointer-events-none"
-          aria-hidden="true"
-        />
-      )}
       <div className="fixed left-0 right-0 bottom-0 z-0 pointer-events-none" style={{ top: "-80px" }}>
         <ParticleFloor />
       </div>
