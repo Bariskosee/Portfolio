@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import MatrixName from "./components/MatrixName";
 import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
+import ProjectCard, { type ProjectCardData } from "./components/ProjectCard";
 
 const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
   ssr: false,
 });
 
-const projects = {
+const projects: Record<"EN" | "TR", ProjectCardData[]> = {
   EN: [
     {
       title: "ev-charging-simulation",
@@ -20,7 +20,10 @@ const projects = {
         "Multi-service EV charging simulation with Kafka-backed messaging, monitoring, and fault-tolerance exercises.",
       stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
       link: "https://github.com/Bariskosee/ev-charging-simulation",
-      action: "View GitHub repo",
+      action: "View on GitHub",
+      year: "2025",
+      role: "Distributed Systems",
+      tag: "19 SERVICES",
     },
     {
       title: "MefapexChatBox",
@@ -28,7 +31,10 @@ const projects = {
         "Turkish NLP chatbot prototype using BERT-based intent classification and a FastAPI service layer.",
       stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
       link: "https://github.com/Bariskosee/MefapexChatBox",
-      action: "View GitHub repo",
+      action: "View on GitHub",
+      year: "2024",
+      role: "NLP · ML",
+      tag: "BERT · 85% ACC",
     },
     {
       title: "DataFelix",
@@ -36,7 +42,11 @@ const projects = {
         "Full-stack movie catalog that highlights clean Spring Boot backend architecture.",
       stack: ["Java 17", "Spring Boot", "Spring Security"],
       link: "https://github.com/Bariskosee/DataFelix",
-      action: "View GitHub repo",
+      action: "View on GitHub",
+      year: "2024",
+      role: "Full-stack",
+      tag: "JAVA · SPRING",
+      hasSprite: true,
     },
   ],
   TR: [
@@ -46,7 +56,10 @@ const projects = {
         "Kafka mesajlaşması, izleme ve hata toleransı senaryoları içeren çok servisli EV charging simülasyonu.",
       stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
       link: "https://github.com/Bariskosee/ev-charging-simulation",
-      action: "GitHub reposunu aç",
+      action: "GitHub'da incele",
+      year: "2025",
+      role: "Distributed Systems",
+      tag: "19 SERVICES",
     },
     {
       title: "MefapexChatBox",
@@ -54,7 +67,10 @@ const projects = {
         "BERT tabanlı intent sınıflandırma ve FastAPI servis katmanı kullanan Türkçe NLP chatbot prototipi.",
       stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
       link: "https://github.com/Bariskosee/MefapexChatBox",
-      action: "GitHub reposunu aç",
+      action: "GitHub'da incele",
+      year: "2024",
+      role: "NLP · ML",
+      tag: "BERT · 85% ACC",
     },
     {
       title: "DataFelix",
@@ -62,17 +78,25 @@ const projects = {
         "Spring Boot backend mimarisini öne çıkaran full-stack film kataloğu projesi.",
       stack: ["Java 17", "Spring Boot", "Spring Security"],
       link: "https://github.com/Bariskosee/DataFelix",
-      action: "GitHub reposunu aç",
+      action: "GitHub'da incele",
+      year: "2024",
+      role: "Full-stack",
+      tag: "JAVA · SPRING",
+      hasSprite: true,
     },
   ],
-} as const;
+};
 
 const copy = {
   EN: {
     eyebrow: "Software Engineer · Istanbul",
     intro:
       "Software engineering student building at the intersection of distributed systems, AI/ML, and data science.",
+    projectsEyebrow: "01 — SELECTED WORK",
     projectsTitle: "Projects",
+    projectsSubtitle:
+      "Three recent projects across distributed systems, NLP, and full-stack architecture.",
+    viewAll: "View all on GitHub",
     technologiesTitle: "Technologies",
     ctaGitHub: "GitHub",
     ctaLinkedIn: "LinkedIn",
@@ -83,7 +107,11 @@ const copy = {
     eyebrow: "Yazılım Mühendisi · Istanbul",
     intro:
       "Dağıtık sistemler, yapay zeka ve veri bilimi kesişiminde ürünler geliştiren bir yazılım mühendisliği öğrencisiyim.",
+    projectsEyebrow: "01 — SEÇİLMİŞ ÇALIŞMALAR",
     projectsTitle: "Projeler",
+    projectsSubtitle:
+      "Dağıtık sistemler, NLP ve full-stack mimari üzerine son dönemde üzerinde çalıştığım üç proje.",
+    viewAll: "Tümünü GitHub'da gör",
     technologiesTitle: "Teknolojiler",
     ctaGitHub: "GitHub",
     ctaLinkedIn: "LinkedIn",
@@ -247,69 +275,54 @@ export default function Home() {
               </motion.div>
 
               <motion.div
-                className="flex flex-col items-center gap-4 md:gap-6"
+                className="flex flex-col gap-8 md:gap-10"
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: true, amount: 0.25 }}
+                viewport={{ once: true, amount: 0.15 }}
                 variants={heroVariants}
               >
-                <h2 className="font-serif text-[2.35rem] font-medium italic leading-tight text-text-primary md:text-[3rem] lg:text-[3.45rem] text-center">
-                  {t.projectsTitle}
-                </h2>
+                {/* Section header */}
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2.5 font-sans text-[10.5px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+                      <span className="inline-block h-px w-6 bg-text-muted" />
+                      {t.projectsEyebrow}
+                    </div>
+                    <h2 className="m-0 font-serif text-[clamp(2.2rem,5vw,3.6rem)] font-medium italic leading-tight text-text-primary">
+                      {t.projectsTitle}
+                    </h2>
+                    <p className="m-0 max-w-md font-sans text-sm leading-relaxed text-text-secondary">
+                      {t.projectsSubtitle}
+                    </p>
+                  </div>
+                  <a
+                    href="https://github.com/Bariskosee"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring transition-premium-fast inline-flex shrink-0 items-center gap-2.5 self-start rounded-full border border-border-strong px-4 py-2.5 font-sans text-[12.5px] font-medium text-text-primary hover:border-accent hover:text-accent sm:mt-7"
+                  >
+                    {t.viewAll}
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent font-sans text-[11px] text-bg-surface">
+                      ↗
+                    </span>
+                  </a>
+                </div>
 
+                {/* Cards grid — extra top padding so DataFelix sprite has room above */}
                 <motion.div
-                  className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-6"
+                  className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  style={{ paddingTop: 56 }}
                   variants={gridVariants}
                 >
-                {projects[language].map((project, index) => {
-                  const isDataFelix = index === 2;
-
-                  return (
-                    <motion.article
+                  {projects[language].map((project, index) => (
+                    <ProjectCard
                       key={project.title}
+                      project={project}
+                      index={index}
                       variants={cardVariants}
-                      className="focus-ring transition-premium relative flex h-full flex-col gap-4 rounded-2xl border border-border-soft bg-bg-surface p-6 shadow-card hover:-translate-y-1 hover:border-border-strong hover:shadow-card-hover md:p-7 lg:p-8"
-                    >
-                      {isDataFelix && (
-                        <Image
-                          src="/baris-idle.png"
-                          alt=""
-                          aria-hidden="true"
-                          width={128}
-                          height={192}
-                          draggable={false}
-                          className="pixel-art pointer-events-none absolute bottom-[calc(100%-6px)] right-2 z-10 h-auto w-20 select-none sm:w-24 md:w-28 lg:right-4 lg:w-32"
-                        />
-                      )}
-
-                      <h3 className="font-serif text-[1.95rem] leading-tight text-text-primary">
-                        {project.title}
-                      </h3>
-                      <p className="flex-1 font-sans text-sm leading-relaxed text-text-secondary md:text-[0.95rem]">
-                        {project.description}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {project.stack.map((tech) => (
-                          <span
-                            key={tech}
-                            className="rounded-full border border-border-soft bg-accent-soft px-2.5 py-1 font-sans text-[11px] font-medium tracking-wide text-accent"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                      <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`${project.action}: ${project.title}`}
-                        className="focus-ring transition-premium-fast mt-1 inline-flex w-fit rounded-full border border-border-soft px-3 py-1.5 font-sans text-xs font-semibold text-accent hover:border-border-strong hover:bg-accent-soft"
-                      >
-                        {project.action} ↗
-                      </a>
-                    </motion.article>
-                  );
-                })}
+                      reducedMotion={!!reduceMotion}
+                    />
+                  ))}
                 </motion.div>
               </motion.div>
             </div>

@@ -18,6 +18,11 @@ const modalCopy = {
       "My work lives at the intersection of distributed systems and AI/ML. I've built event-driven microservices handling thousands of events per second, and NLP chatbots that actually understand Turkish. When I'm not debugging production code, I'm probably solving LeetCode problems, playing tennis, or rewatching Mindhunter for the fourth time.",
       "I've spent two summers working in the US, one semester in Spain, and I'm aiming for a master's in Germany next. I believe great engineering comes from curiosity, long walks, and occasional time zone changes.",
     ],
+    meta: [
+      { label: "Location", value: "Istanbul" },
+      { label: "School", value: "Aydın Uni." },
+      { label: "Year", value: "3rd" },
+    ],
     email: "Email",
     closeLabel: "Close about panel",
   },
@@ -28,6 +33,11 @@ const modalCopy = {
       "Istanbul'da yaşayan, ölçeklenebilir sistemler ve öğrenen makineler üzerine odaklanan bir yazılım mühendisliği öğrencisiyim. Istanbul Aydın Üniversitesi'nde 3. sınıftayım ve Erasmus dönemimi Universidad de Alicante'de tamamladım.",
       "Çalışmalarım distributed systems ile AI/ML kesişiminde ilerliyor. Saniyede binlerce event işleyen event-driven mikroservisler ve Türkçeyi gerçekten anlayan NLP chatbot'lar geliştirdim. Kod dışında genelde LeetCode çözüyor, tenis oynuyor ya da Mindhunter'ı tekrar izliyorum.",
       "ABD'de iki yaz dönemi çalıştım, İspanya'da bir dönem eğitim aldım ve sıradaki hedefim Almanya'da yüksek lisans. İyi mühendisliğin merak, uzun yürüyüşler ve bazen zaman dilimi değişiminden beslendiğine inanıyorum.",
+    ],
+    meta: [
+      { label: "Konum", value: "Istanbul" },
+      { label: "Okul", value: "Aydın Üni." },
+      { label: "Sınıf", value: "3." },
     ],
     email: "E-posta",
     closeLabel: "Hakkımda panelini kapat",
@@ -58,7 +68,8 @@ export default function AboutModal({ isOpen, language, onClose }: AboutModalProp
 
   return (
     <div
-      className="fixed inset-0 top-[5.5rem] z-50 overflow-y-auto bg-[rgba(16,18,30,0.26)] px-5 pb-8 pt-6 md:top-24 md:px-8 animate-backdrop-fade-in"
+      className="fixed inset-0 top-[5.5rem] z-50 overflow-y-auto bg-[rgba(16,18,30,0.45)] px-5 pb-8 pt-6 md:top-24 md:px-8 animate-backdrop-fade-in"
+      style={{ backdropFilter: "blur(3px)" }}
       onClick={onClose}
     >
       <div className="mx-auto grid w-full max-w-[980px] min-w-[300px] grid-cols-1 items-start gap-4 md:gap-5 lg:w-[64vw] lg:grid-cols-[0.9fr_2.1fr] animate-modal-fade-in">
@@ -86,6 +97,15 @@ export default function AboutModal({ isOpen, language, onClose }: AboutModalProp
               fill
               className="object-cover"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            {t.meta.map((row) => (
+              <div key={row.label} className="flex items-center justify-between border-b border-text-primary/10 pb-1.5 last:border-b-0 last:pb-0">
+                <span className="font-sans text-[11px] text-text-secondary">{row.label}</span>
+                <span className="font-sans text-[11px] font-medium text-text-primary">{row.value}</span>
+              </div>
+            ))}
           </div>
 
           <button
