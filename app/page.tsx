@@ -412,7 +412,7 @@ export default function Home() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.6 }}
-                variants={softRevealVariants}
+                variants={revealVariants}
               >
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
@@ -437,7 +437,7 @@ export default function Home() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.12 }}
-                variants={softRevealVariants}
+                variants={revealVariants}
               >
                 <TechSphere />
               </motion.div>
