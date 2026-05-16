@@ -347,7 +347,7 @@ export default function Home() {
                       rel="noopener noreferrer"
                       whileHover={microHover}
                       whileTap={microTap}
-                      className="focus-ring transition-premium-fast rounded-full bg-accent px-4 py-2 font-sans text-sm font-semibold text-bg-surface hover:bg-accent-hover"
+                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:bg-accent hover:text-bg-surface hover:border-accent"
                     >
                       {t.ctaGitHub}
                     </motion.a>
@@ -357,7 +357,7 @@ export default function Home() {
                       rel="noopener noreferrer"
                       whileHover={microHover}
                       whileTap={microTap}
-                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:border-border-strong hover:text-accent"
+                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:bg-accent hover:text-bg-surface hover:border-accent"
                     >
                       {t.ctaLinkedIn}
                     </motion.a>
@@ -365,7 +365,7 @@ export default function Home() {
                       href="mailto:kosebaris279@gmail.com"
                       whileHover={microHover}
                       whileTap={microTap}
-                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:border-border-strong hover:text-accent"
+                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:bg-accent hover:text-bg-surface hover:border-accent"
                     >
                       {t.ctaEmail}
                     </motion.a>
