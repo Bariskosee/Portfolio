@@ -267,16 +267,6 @@ export default function Home() {
               </motion.button>
             </div>
 
-            <motion.a
-              href="https://github.com/Bariskosee"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={microHover}
-              whileTap={microTap}
-              className="focus-ring transition-premium-fast rounded-md px-1 font-sans text-sm text-text-secondary hover:text-accent"
-            >
-              GitHub ↗
-            </motion.a>
           </div>
         </header>
 
