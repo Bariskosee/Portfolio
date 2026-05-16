@@ -145,19 +145,19 @@ export default function Home() {
     hidden: {},
     show: {
       transition: {
-        staggerChildren: reduceMotion ? 0 : 0.1,
-        delayChildren: reduceMotion ? 0 : 0.14,
+        staggerChildren: reduceMotion ? 0 : 0.06,
+        delayChildren: reduceMotion ? 0 : 0.06,
       },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 16 },
     show: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: reduceMotion ? 0 : 0.52,
+        duration: reduceMotion ? 0 : 0.32,
         ease: [0.22, 1, 0.36, 1] as const,
       },
     },
