@@ -222,7 +222,7 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
       whileHover={
         reducedMotion
           ? undefined
-          : { y: -8, transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] } }
+          : { y: -8, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }
       }
       style={{
         position: "relative",
@@ -233,7 +233,7 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
           ? "0 24px 48px -12px rgba(17,24,39,0.18), 0 4px 12px rgba(17,24,39,0.06)"
           : "0 2px 4px rgba(17,24,39,0.04), 0 8px 20px -4px rgba(17,24,39,0.06)",
         transition:
-          "box-shadow 360ms cubic-bezier(0.22,1,0.36,1), border-color 240ms cubic-bezier(0.22,1,0.36,1)",
+          "box-shadow 180ms cubic-bezier(0.22,1,0.36,1), border-color 140ms cubic-bezier(0.22,1,0.36,1)",
         display: "flex",
         flexDirection: "column",
         cursor: "pointer",
@@ -258,7 +258,7 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
             zIndex: 5,
             filter: "drop-shadow(0 10px 8px rgba(17,24,39,0.20))",
             transform: hovered && !reducedMotion ? "translateY(-6px)" : "translateY(0)",
-            transition: "transform 360ms cubic-bezier(0.22,1,0.36,1)",
+            transition: "transform 180ms cubic-bezier(0.22,1,0.36,1)",
           }}
         />
       )}
@@ -291,7 +291,7 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
           <motion.div
             style={{ width: "100%", height: "100%" }}
             animate={{ scale: hovered && !reducedMotion ? 1.04 : 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
             <Thumb />
           </motion.div>
@@ -483,7 +483,7 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
               <span style={{
                 display: "inline-flex",
                 transform: hovered ? "translateX(2px)" : "translateX(0)",
-                transition: "transform 280ms cubic-bezier(0.22,1,0.36,1)",
+                transition: "transform 180ms cubic-bezier(0.22,1,0.36,1)",
               }}>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                   <path
