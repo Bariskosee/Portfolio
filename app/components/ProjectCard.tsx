@@ -407,6 +407,7 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
             {visibleStack.map((s) => (
               <span
                 key={s}
+                className="stack-chip"
                 style={{
                   fontSize: 11,
                   fontWeight: 500,
@@ -476,17 +477,24 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
                 justifyContent: "center",
                 transition: "all 280ms cubic-bezier(0.22,1,0.36,1)",
                 flexShrink: 0,
+                overflow: "hidden",
               }}
             >
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M3 7h8M7 3l4 4-4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <span style={{
+                display: "inline-flex",
+                transform: hovered ? "translateX(2px)" : "translateX(0)",
+                transition: "transform 280ms cubic-bezier(0.22,1,0.36,1)",
+              }}>
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 7h8M7 3l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </span>
           </div>
         </div>
