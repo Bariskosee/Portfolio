@@ -25,6 +25,7 @@ function makeTexture() {
 
 function ParticleCloud({ reduced, scrollProgress }: { reduced: boolean; scrollProgress: number }) {
   const { scene } = useThree();
+  const elapsedRef = useRef(0);
   const smallRef = useRef<THREE.Points | null>(null);
   const largeRef = useRef<THREE.Points | null>(null);
   const smallOrigRef = useRef<Float32Array | null>(null);
@@ -91,8 +92,9 @@ function ParticleCloud({ reduced, scrollProgress }: { reduced: boolean; scrollPr
     };
   }, [scene]);
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
+  useFrame((_, delta) => {
+    if (!reduced) elapsedRef.current += Math.min(delta, 0.1);
+    const t = elapsedRef.current;
     const progress = scrollRef.current;
 
     const blended = COLOR_TOP.clone().lerp(COLOR_BOTTOM, progress);
@@ -153,6 +155,7 @@ export default function ParticleFloor() {
 
   return (
     <Canvas
+      frameloop={reduced ? 'demand' : 'always'}
       dpr={[1, 1.5]}
       camera={{ position: [0, 0, 0], fov: 75 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}

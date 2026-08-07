@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
-import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import MatrixName from "./components/MatrixName";
 import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
@@ -12,17 +12,27 @@ const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
   ssr: false,
 });
 
+type Language = "EN" | "TR";
+
+const LANGUAGE_STORAGE_KEY = "baris-portfolio-language-v1";
+const LANGUAGE_CHANGE_EVENT = "baris:language-change";
 const easePremium = [0.22, 1, 0.36, 1] as const;
 
-const projects: Record<"EN" | "TR", ProjectCardData[]> = {
+const projects: Record<Language, ProjectCardData[]> = {
   EN: [
     {
       title: "ev-charging-simulation",
       description:
-        "Multi-service EV charging simulation with Kafka-backed messaging, monitoring, and fault-tolerance exercises.",
+        "An event-driven EV charging network that coordinates charging points, drivers, monitoring, and registry flows.",
+      contribution:
+        "Built a 19-service autonomous topology with Kafka messaging, FastAPI services, health monitoring, and fault recovery.",
+      outcome:
+        "The Docker-based setup demonstrates concurrent charging, live telemetry, service registration, and recovery scenarios without manual interaction.",
+      metricSource: "Repository documentation · 19-service autonomous topology",
+      metricSourceUrl: "https://github.com/Bariskosee/ev-charging-simulation#readme",
       stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
       link: "https://github.com/Bariskosee/ev-charging-simulation",
-      action: "View on GitHub",
+      action: "View source",
       year: "2025",
       role: "Distributed Systems",
       tag: "19 SERVICES",
@@ -30,136 +40,294 @@ const projects: Record<"EN" | "TR", ProjectCardData[]> = {
     {
       title: "MefapexChatBox",
       description:
-        "Turkish NLP chatbot prototype using BERT-based intent classification and a FastAPI service layer.",
-      stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
+        "A Turkish factory-support chatbot with an intent pipeline, authenticated sessions, and real-time messaging.",
+      contribution:
+        "Combined TF-IDF and Logistic Regression intent classification with FastAPI, WebSocket, authentication, and session layers.",
+      outcome:
+        "The repository reports a typical 80–85% intent-accuracy range and sub-50 ms inference; these are project-reported figures, not an independent benchmark.",
+      metricSource: "Repository-reported model range and inference time",
+      metricSourceUrl: "https://github.com/Bariskosee/MefapexChatBox#readme",
+      stack: ["Python", "FastAPI", "scikit-learn", "WebSocket", "Redis"],
       link: "https://github.com/Bariskosee/MefapexChatBox",
-      action: "View on GitHub",
+      action: "View source",
       year: "2024",
-      role: "NLP · ML",
-      tag: "BERT · 85% ACC",
+      role: "Turkish NLP",
+      tag: "INTENT PIPELINE",
     },
     {
       title: "DataFelix",
       description:
-        "Full-stack movie catalog that highlights clean Spring Boot backend architecture.",
-      stack: ["Java 17", "Spring Boot", "Spring Security"],
+        "A full-stack movie and TV catalog focused on secure accounts and clear content discovery.",
+      contribution:
+        "Implemented catalog browsing, search, detail pages, authentication, and favorites with Spring Boot and Thymeleaf.",
+      outcome:
+        "The application connects a responsive Bootstrap interface to JPA/Hibernate persistence and Spring Security flows.",
+      metricSource: "Repository feature and architecture documentation",
+      metricSourceUrl: "https://github.com/Bariskosee/DataFelix#readme",
+      stack: ["Java 17", "Spring Boot", "Spring Security", "Thymeleaf"],
       link: "https://github.com/Bariskosee/DataFelix",
-      action: "View on GitHub",
+      action: "View source",
       year: "2024",
       role: "Full-stack",
       tag: "JAVA · SPRING",
-      hasSprite: true,
     },
   ],
   TR: [
     {
       title: "ev-charging-simulation",
       description:
-        "Kafka mesajlaşması, izleme ve hata toleransı senaryoları içeren çok servisli EV charging simülasyonu.",
+        "Şarj noktalarını, sürücüleri, izleme ve kayıt akışlarını koordine eden olay güdümlü EV charging ağı.",
+      contribution:
+        "Kafka mesajlaşması, FastAPI servisleri, sağlık izleme ve hata kurtarma içeren 19 servisli otonom topoloji geliştirdim.",
+      outcome:
+        "Docker tabanlı kurulum; eşzamanlı şarjı, canlı telemetriyi, servis kaydını ve kurtarma senaryolarını manuel müdahale olmadan gösteriyor.",
+      metricSource: "Depo dokümantasyonu · 19 servisli otonom topoloji",
+      metricSourceUrl: "https://github.com/Bariskosee/ev-charging-simulation#readme",
       stack: ["Python", "FastAPI", "Kafka", "Docker", "Redis"],
       link: "https://github.com/Bariskosee/ev-charging-simulation",
-      action: "GitHub'da incele",
+      action: "Kaynak kodu incele",
       year: "2025",
-      role: "Distributed Systems",
+      role: "Dağıtık Sistemler",
       tag: "19 SERVICES",
     },
     {
       title: "MefapexChatBox",
       description:
-        "BERT tabanlı intent sınıflandırma ve FastAPI servis katmanı kullanan Türkçe NLP chatbot prototipi.",
-      stack: ["PyTorch", "BERT", "FastAPI", "Redis", "WebSocket"],
+        "Niyet hattı, kimlik doğrulamalı oturumlar ve gerçek zamanlı mesajlaşma içeren Türkçe fabrika destek chatbot'u.",
+      contribution:
+        "TF-IDF ve Logistic Regression niyet sınıflandırmasını FastAPI, WebSocket, kimlik doğrulama ve oturum katmanlarıyla birleştirdim.",
+      outcome:
+        "Depo, tipik %80–85 niyet doğruluğu aralığı ve 50 ms altı çıkarım süresi raporluyor; bunlar bağımsız benchmark değil, proje beyanıdır.",
+      metricSource: "Depoda raporlanan model aralığı ve çıkarım süresi",
+      metricSourceUrl: "https://github.com/Bariskosee/MefapexChatBox#readme",
+      stack: ["Python", "FastAPI", "scikit-learn", "WebSocket", "Redis"],
       link: "https://github.com/Bariskosee/MefapexChatBox",
-      action: "GitHub'da incele",
+      action: "Kaynak kodu incele",
       year: "2024",
-      role: "NLP · ML",
-      tag: "BERT · 85% ACC",
+      role: "Türkçe NLP",
+      tag: "INTENT PIPELINE",
     },
     {
       title: "DataFelix",
       description:
-        "Spring Boot backend mimarisini öne çıkaran full-stack film kataloğu projesi.",
-      stack: ["Java 17", "Spring Boot", "Spring Security"],
+        "Güvenli hesap akışları ve anlaşılır içerik keşfine odaklanan full-stack film ve dizi kataloğu.",
+      contribution:
+        "Spring Boot ve Thymeleaf ile katalog, arama, detay sayfaları, kimlik doğrulama ve favori akışlarını geliştirdim.",
+      outcome:
+        "Uygulama, responsive Bootstrap arayüzünü JPA/Hibernate kalıcılığı ve Spring Security akışlarıyla birleştiriyor.",
+      metricSource: "Depodaki özellik ve mimari dokümantasyonu",
+      metricSourceUrl: "https://github.com/Bariskosee/DataFelix#readme",
+      stack: ["Java 17", "Spring Boot", "Spring Security", "Thymeleaf"],
       link: "https://github.com/Bariskosee/DataFelix",
-      action: "GitHub'da incele",
+      action: "Kaynak kodu incele",
       year: "2024",
       role: "Full-stack",
       tag: "JAVA · SPRING",
-      hasSprite: true,
     },
   ],
 };
 
 const copy = {
   EN: {
-    eyebrow: "Software Engineer · Istanbul",
+    languageLabel: "Language selection",
+    navigationLabel: "Primary navigation",
+    navWork: "Work",
+    navAbout: "About",
+    navSkills: "Skills",
+    navContact: "Contact",
+    skipToContent: "Skip to main content",
+    eyebrow: "Software Engineering Student · Istanbul",
+    focus: "Backend · Distributed Systems · AI/ML",
     intro:
-      "Software engineering student building at the intersection of distributed systems, AI/ML, and data science.",
-    projectsEyebrow: "01 — SELECTED WORK",
-    projectsTitle: "Projects",
-    projectsSubtitle:
-      "Three recent projects across distributed systems, NLP, and full-stack architecture.",
-    viewAll: "View all on GitHub",
-    technologiesTitle: "Technologies",
+      "I build reliable software at the intersection of distributed systems, backend engineering, and applied machine learning.",
+    ctaProjects: "Explore selected work",
     ctaGitHub: "GitHub",
     ctaLinkedIn: "LinkedIn",
     ctaEmail: "Email",
+    newTab: "opens in a new tab",
+    projectsEyebrow: "01 — SELECTED WORK",
+    projectsTitle: "Projects",
+    projectsSubtitle:
+      "Three projects presented through the problem solved, my contribution, and the evidence available in each repository.",
+    viewAll: "View every repository on GitHub",
+    aboutEyebrow: "02 — PROFILE",
+    aboutTitle: "About & journey",
+    aboutBody:
+      "I enjoy turning complex technical ideas into understandable, maintainable products. I care about reliable backend systems, accessible interfaces, and improving the result with every iteration.",
+    journeyTitle: "Education & international experience",
+    journey: [
+      {
+        label: "Software engineering",
+        meta: "Ongoing studies",
+        body: "Coursework and independent projects spanning backend systems, frontend foundations, data, and machine learning.",
+      },
+      {
+        label: "Universidad de Alicante",
+        meta: "Erasmus exchange · Spain",
+        body: "Studied in an international academic environment and developed experience working across cultures.",
+      },
+      {
+        label: "United States",
+        meta: "Work & Travel · two summers",
+        body: "Built practical communication, adaptability, and cross-cultural experience across two summer seasons.",
+      },
+    ],
+    technologiesEyebrow: "03 — CAPABILITIES",
+    technologiesTitle: "Technologies",
+    technologiesSubtitle:
+      "Grouped by where I use them, with the animated canvas kept as a secondary visual layer.",
+    contactEyebrow: "04 — CONTACT",
+    contactTitle: "Let’s build something reliable.",
+    contactBody:
+      "For a CV, a deeper project walkthrough, or a junior opportunity, reach me by email or LinkedIn.",
+    contactEmail: "Send an email",
+    contactLinkedIn: "Open LinkedIn",
     footer: "© 2026 Barış Köse · Made with care in Istanbul",
   },
   TR: {
-    eyebrow: "Yazılım Mühendisi · Istanbul",
+    languageLabel: "Dil seçimi",
+    navigationLabel: "Ana navigasyon",
+    navWork: "Projeler",
+    navAbout: "Hakkımda",
+    navSkills: "Yetkinlikler",
+    navContact: "İletişim",
+    skipToContent: "Ana içeriğe geç",
+    eyebrow: "Yazılım Mühendisliği Öğrencisi · İstanbul",
+    focus: "Backend · Dağıtık Sistemler · AI/ML",
     intro:
-      "Dağıtık sistemler, yapay zeka ve veri bilimi kesişiminde ürünler geliştiren bir yazılım mühendisliği öğrencisiyim.",
-    projectsEyebrow: "01 — SEÇİLMİŞ ÇALIŞMALAR",
-    projectsTitle: "Projeler",
-    projectsSubtitle:
-      "Dağıtık sistemler, NLP ve full-stack mimari üzerine son dönemde üzerinde çalıştığım üç proje.",
-    viewAll: "Tümünü GitHub'da gör",
-    technologiesTitle: "Teknolojiler",
+      "Dağıtık sistemler, backend mühendisliği ve uygulamalı makine öğrenmesinin kesişiminde güvenilir yazılımlar geliştiriyorum.",
+    ctaProjects: "Seçilmiş projeleri incele",
     ctaGitHub: "GitHub",
     ctaLinkedIn: "LinkedIn",
     ctaEmail: "E-posta",
-    footer: "© 2026 Barış Köse · Istanbul'da özenle geliştirildi",
+    newTab: "yeni sekmede açılır",
+    projectsEyebrow: "01 — SEÇİLMİŞ ÇALIŞMALAR",
+    projectsTitle: "Projeler",
+    projectsSubtitle:
+      "Üç projeyi çözülen problem, kişisel katkım ve her depoda bulunan doğrulanabilir kanıtlarla sunuyorum.",
+    viewAll: "GitHub'daki tüm depoları gör",
+    aboutEyebrow: "02 — PROFİL",
+    aboutTitle: "Hakkımda ve yolculuğum",
+    aboutBody:
+      "Karmaşık teknik fikirleri anlaşılır ve sürdürülebilir ürünlere dönüştürmeyi seviyorum. Güvenilir backend sistemlerini, erişilebilir arayüzleri ve her iterasyonda sonucu iyileştirmeyi önemsiyorum.",
+    journeyTitle: "Eğitim ve uluslararası deneyim",
+    journey: [
+      {
+        label: "Yazılım mühendisliği",
+        meta: "Devam eden eğitim",
+        body: "Backend sistemleri, frontend temelleri, veri ve makine öğrenmesini kapsayan dersler ve bağımsız projeler.",
+      },
+      {
+        label: "Universidad de Alicante",
+        meta: "Erasmus değişimi · İspanya",
+        body: "Uluslararası bir akademik ortamda eğitim aldım ve farklı kültürlerle çalışma deneyimi geliştirdim.",
+      },
+      {
+        label: "Amerika Birleşik Devletleri",
+        meta: "Work & Travel · iki yaz",
+        body: "İki yaz dönemi boyunca iletişim, uyum ve kültürler arası çalışma deneyimi kazandım.",
+      },
+    ],
+    technologiesEyebrow: "03 — YETKİNLİKLER",
+    technologiesTitle: "Teknolojiler",
+    technologiesSubtitle:
+      "Kullandığım alana göre gruplandı; hareketli canvas ikincil bir görsel katman olarak tutuldu.",
+    contactEyebrow: "04 — İLETİŞİM",
+    contactTitle: "Birlikte güvenilir bir şey geliştirelim.",
+    contactBody:
+      "CV, detaylı proje anlatımı veya junior bir fırsat için e-posta ya da LinkedIn üzerinden ulaşabilirsiniz.",
+    contactEmail: "E-posta gönder",
+    contactLinkedIn: "LinkedIn'i aç",
+    footer: "© 2026 Barış Köse · İstanbul'da özenle geliştirildi",
   },
 } as const;
 
+function isLanguage(value: string | null): value is Lowercase<Language> {
+  return value === "en" || value === "tr";
+}
+
+function getLanguageSnapshot(): Language {
+  const urlLanguage = new URLSearchParams(window.location.search).get("lang");
+  if (isLanguage(urlLanguage)) {
+    return urlLanguage.toUpperCase() as Language;
+  }
+
+  try {
+    const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (storedLanguage === "EN" || storedLanguage === "TR") {
+      return storedLanguage;
+    }
+  } catch {
+    // Fall back to the browser language when storage is unavailable.
+  }
+
+  return window.navigator.language.toLowerCase().startsWith("tr") ? "TR" : "EN";
+}
+
+function getServerLanguageSnapshot(): Language {
+  return "TR";
+}
+
+function subscribeToLanguage(onStoreChange: () => void) {
+  const onStorage = (event: StorageEvent) => {
+    if (!event.key || event.key === LANGUAGE_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+
+  window.addEventListener("storage", onStorage);
+  window.addEventListener("popstate", onStoreChange);
+  window.addEventListener(LANGUAGE_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener("popstate", onStoreChange);
+    window.removeEventListener(LANGUAGE_CHANGE_EVENT, onStoreChange);
+  };
+}
+
 export default function Home() {
-  const [language, setLanguage] = useState<"EN" | "TR">("TR");
+  const language = useSyncExternalStore<Language>(
+    subscribeToLanguage,
+    getLanguageSnapshot,
+    getServerLanguageSnapshot,
+  );
+  const [scrolled, setScrolled] = useState(false);
   const reduceMotion = !!useReducedMotion();
   const t = copy[language];
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (language !== getLanguageSnapshot()) return;
     document.documentElement.lang = language === "TR" ? "tr" : "en";
+    delete document.documentElement.dataset.languagePending;
   }, [language]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const selectLanguage = (nextLanguage: Language) => {
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+    } catch {
+      // Language still changes for the current session when storage is unavailable.
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", nextLanguage.toLowerCase());
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    window.dispatchEvent(new Event(LANGUAGE_CHANGE_EVENT));
+  };
 
   const revealVariants: Variants = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 18 },
     show: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: reduceMotion ? 0 : 0.56,
-        ease: easePremium,
-      },
-    },
-  };
-
-  const swapVariants: Variants = {
-    hidden: { opacity: 0, y: reduceMotion ? 0 : 6 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: reduceMotion ? 0 : 0.24,
-        ease: easePremium,
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: reduceMotion ? 0 : -4,
-      transition: {
-        duration: reduceMotion ? 0 : 0.16,
-        ease: easePremium,
-      },
+      transition: { duration: reduceMotion ? 0 : 0.52, ease: easePremium },
     },
   };
 
@@ -169,15 +337,7 @@ export default function Home() {
       opacity: 1,
       transition: {
         staggerChildren: reduceMotion ? 0 : 0.1,
-        delayChildren: reduceMotion ? 0 : 0.14,
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: reduceMotion ? 0 : 8,
-      transition: {
-        duration: reduceMotion ? 0 : 0.16,
-        ease: easePremium,
+        delayChildren: reduceMotion ? 0 : 0.08,
       },
     },
   };
@@ -187,296 +347,384 @@ export default function Home() {
     show: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: reduceMotion ? 0 : 0.48,
-        ease: easePremium,
-      },
-    },
-  };
-
-  const softRevealVariants: Variants = {
-    hidden: { opacity: 0, y: reduceMotion ? 0 : 12 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: reduceMotion ? 0 : 0.48, ease: easePremium },
+      transition: { duration: reduceMotion ? 0 : 0.46, ease: easePremium },
     },
   };
 
   const microHover = reduceMotion ? undefined : { y: -1 };
   const microTap = reduceMotion ? undefined : { scale: 0.98 };
 
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const navigation = [
+    { href: "#projects", label: t.navWork },
+    { href: "#about", label: t.navAbout },
+    { href: "#skills", label: t.navSkills },
+    { href: "#contact", label: t.navContact },
+  ];
 
   return (
     <>
-      <div className="fixed left-0 right-0 bottom-0 z-0 pointer-events-none" style={{ top: "-80px" }}>
+      <a
+        href="#main-content"
+        className="focus-ring fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-accent px-4 py-2 font-sans text-sm font-semibold text-bg-primary transition-transform focus:translate-y-0"
+      >
+        {t.skipToContent}
+      </a>
+
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-0"
+        style={{ top: "-80px" }}
+        aria-hidden="true"
+      >
         <ParticleFloor />
       </div>
+
       <div className="relative z-10">
         <WhoamiCard language={language} />
-        <header className={`fixed top-0 left-0 right-0 z-40 flex items-center justify-end px-5 py-4 md:px-8 md:py-6 backdrop-blur-md transition-all duration-300 ${scrolled ? "border-b border-border-soft shadow-soft" : ""}`}>
-          <div className="flex items-center gap-3">
+
+        <header
+          className={`fixed inset-x-0 top-0 z-40 flex items-center justify-end px-4 py-4 transition-all duration-300 sm:px-6 md:px-8 ${
+            scrolled
+              ? "border-b border-border-soft bg-bg-primary/[0.88] shadow-soft backdrop-blur-xl"
+              : "bg-gradient-to-b from-bg-primary/80 to-transparent"
+          }`}
+        >
+          <div className="flex items-center gap-4 lg:gap-7">
+            <nav
+              aria-label={t.navigationLabel}
+              className="hidden items-center gap-5 lg:flex"
+            >
+              {navigation.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="focus-ring rounded-sm font-sans text-xs font-semibold tracking-wide text-text-secondary transition-colors hover:text-accent"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+
             <div
               role="group"
-              aria-label="Language switch"
+              aria-label={t.languageLabel}
               className="inline-flex items-center rounded-full border border-border-soft bg-surface-raised p-1 shadow-card"
             >
-              <motion.button
-                type="button"
-                onClick={() => setLanguage("EN")}
-                aria-pressed={language === "EN"}
-                whileHover={microHover}
-                whileTap={microTap}
-                className={`focus-ring transition-premium-fast rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] ${
-                  language === "EN"
-                    ? "bg-accent text-bg-surface"
-                    : "text-text-secondary hover:text-accent"
-                }`}
-              >
-                EN
-              </motion.button>
-              <motion.button
-                type="button"
-                onClick={() => setLanguage("TR")}
-                aria-pressed={language === "TR"}
-                whileHover={microHover}
-                whileTap={microTap}
-                className={`focus-ring transition-premium-fast rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] ${
-                  language === "TR"
-                    ? "bg-accent text-bg-surface"
-                    : "text-text-secondary hover:text-accent"
-                }`}
-              >
-                TR
-              </motion.button>
+              {(["EN", "TR"] as const).map((option) => (
+                <motion.button
+                  key={option}
+                  type="button"
+                  onClick={() => selectLanguage(option)}
+                  aria-pressed={language === option}
+                  whileHover={microHover}
+                  whileTap={microTap}
+                  className={`focus-ring min-h-7 min-w-11 rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] transition-colors ${
+                    language === option
+                      ? "bg-accent text-bg-surface"
+                      : "text-text-secondary hover:text-accent"
+                  }`}
+                >
+                  {option}
+                </motion.button>
+              ))}
             </div>
-
           </div>
         </header>
 
-        <main>
-          <section className="relative px-5 pt-24 pb-10 md:px-8 md:pt-28 md:pb-12">
-            <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-6xl flex-col justify-center gap-8 md:min-h-[calc(100vh-8rem)] md:gap-10 lg:gap-12">
-              <motion.div
-                className="flex flex-col items-center text-center"
-                variants={revealVariants}
-                initial="hidden"
-                animate="show"
+        <main id="main-content">
+          <section
+            id="home"
+            className="relative flex min-h-[100svh] items-center px-5 pb-16 pt-28 sm:px-6 md:px-8 md:pb-20 md:pt-32"
+          >
+            <motion.div
+              className="mx-auto flex w-full max-w-4xl flex-col items-center text-center"
+              variants={revealVariants}
+              initial="hidden"
+              animate="show"
+            >
+              <p className="mb-4 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-text-muted sm:tracking-[0.22em]">
+                {t.eyebrow}
+              </p>
+
+              <h1
+                aria-label="Barış Köse"
+                className="font-serif text-[3.15rem] font-normal leading-[0.92] tracking-tight text-text-primary sm:text-[4rem] md:text-[5.2rem] lg:text-[6.4rem]"
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.p
-                    key={`hero-eyebrow-${language}`}
-                    className="mb-4 font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted"
-                    variants={swapVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    {t.eyebrow}
-                  </motion.p>
-                </AnimatePresence>
-                <h1 className="font-serif text-[3.1rem] leading-[0.92] font-normal tracking-tight text-text-primary sm:text-[4rem] md:text-[5.1rem] lg:text-[6.2rem]">
-                  <span className="block">
-                    <MatrixName
-                      text="Barış"
-                      durationMs={1100}
-                      reducedMotion={reduceMotion}
-                      once
-                    />
-                  </span>
-                  <span className="block italic text-accent">
-                    <MatrixName
-                      text="Köse"
-                      durationMs={900}
-                      startDelayMs={1200}
-                      reducedMotion={reduceMotion}
-                      once
-                    />
-                  </span>
-                </h1>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.p
-                    key={`hero-intro-${language}`}
-                    className="mt-5 max-w-2xl font-sans text-base leading-relaxed text-text-secondary md:text-lg"
-                    variants={swapVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    {t.intro}
-                  </motion.p>
-                </AnimatePresence>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={`hero-actions-${language}`}
-                    className="mt-6 flex flex-wrap justify-center gap-3"
-                    variants={swapVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    <motion.a
-                      href="https://github.com/Bariskosee"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={microHover}
-                      whileTap={microTap}
-                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:bg-accent hover:text-bg-surface hover:border-accent"
-                    >
-                      {t.ctaGitHub}
-                    </motion.a>
-                    <motion.a
-                      href="https://linkedin.com/in/barisskose/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={microHover}
-                      whileTap={microTap}
-                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:bg-accent hover:text-bg-surface hover:border-accent"
-                    >
-                      {t.ctaLinkedIn}
-                    </motion.a>
-                    <motion.a
-                      href="mailto:kosebaris279@gmail.com"
-                      whileHover={microHover}
-                      whileTap={microTap}
-                      className="focus-ring transition-premium-fast rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-sm font-semibold text-text-secondary hover:bg-accent hover:text-bg-surface hover:border-accent"
-                    >
-                      {t.ctaEmail}
-                    </motion.a>
-                  </motion.div>
-                </AnimatePresence>
-              </motion.div>
+                <span className="block">
+                  <MatrixName
+                    text="Barış"
+                    durationMs={1100}
+                    reducedMotion={reduceMotion}
+                    once
+                  />
+                </span>
+                <span className="block italic text-accent">
+                  <MatrixName
+                    text="Köse"
+                    durationMs={900}
+                    startDelayMs={1200}
+                    reducedMotion={reduceMotion}
+                    once
+                  />
+                </span>
+              </h1>
 
-              <motion.div
-                className="flex flex-col gap-8 md:gap-10"
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, amount: 0.15 }}
-                variants={revealVariants}
+              <p className="mt-5 rounded-full border border-border-soft bg-surface-raised px-4 py-2 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-accent shadow-soft sm:text-xs">
+                {t.focus}
+              </p>
+
+              <p className="mt-5 max-w-2xl font-sans text-base leading-relaxed text-text-secondary md:text-lg">
+                {t.intro}
+              </p>
+
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <motion.a
+                  href="#projects"
+                  whileHover={microHover}
+                  whileTap={microTap}
+                  className="focus-ring rounded-full border border-accent bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-bg-primary transition-colors hover:bg-accent-hover"
+                >
+                  {t.ctaProjects}
+                </motion.a>
+                <motion.a
+                  href="https://github.com/Bariskosee"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t.ctaGitHub} (${t.newTab})`}
+                  whileHover={microHover}
+                  whileTap={microTap}
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-2.5 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
+                >
+                  {t.ctaGitHub}
+                </motion.a>
+                <motion.a
+                  href="https://linkedin.com/in/barisskose/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t.ctaLinkedIn} (${t.newTab})`}
+                  whileHover={microHover}
+                  whileTap={microTap}
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-2.5 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
+                >
+                  {t.ctaLinkedIn}
+                </motion.a>
+                <motion.a
+                  href="mailto:kosebaris279@gmail.com"
+                  whileHover={microHover}
+                  whileTap={microTap}
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-2.5 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
+                >
+                  {t.ctaEmail}
+                </motion.a>
+              </div>
+
+              <nav
+                aria-label={t.navigationLabel}
+                className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl border border-border-soft bg-surface-raised px-4 py-3 shadow-soft lg:hidden"
               >
-                {/* Section header */}
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={`projects-copy-${language}`}
-                    className="flex flex-col gap-3"
-                    variants={swapVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
+                {navigation.map((item) => (
+                  <a
+                    key={`mobile-${item.href}`}
+                    href={item.href}
+                    className="focus-ring rounded-sm font-sans text-xs font-semibold tracking-wide text-text-secondary transition-colors hover:text-accent"
                   >
-                    <div className="flex items-center gap-2.5 font-sans text-[10.5px] font-semibold uppercase tracking-[0.22em] text-text-muted">
-                      <motion.span
-                        className="inline-block h-px bg-text-muted"
-                        style={{ width: 0 }}
-                        whileInView={{ width: 24 }}
-                        viewport={{ once: true, amount: 0.8 }}
-                        transition={{ duration: reduceMotion ? 0 : 0.4, ease: easePremium, delay: 0.15 }}
-                      />
-                      {t.projectsEyebrow}
-                    </div>
-                    <h2 className="m-0 font-serif text-[clamp(2.2rem,5vw,3.6rem)] font-medium italic leading-tight text-text-primary">
-                      {t.projectsTitle}
-                    </h2>
-                    <p className="m-0 max-w-md font-sans text-sm leading-relaxed text-text-secondary">
-                      {t.projectsSubtitle}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Cards grid — extra top padding so DataFelix sprite has room above */}
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={`project-grid-${language}`}
-                    className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-                    style={{ paddingTop: 56 }}
-                    variants={gridVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    {projects[language].map((project, index) => (
-                      <ProjectCard
-                        key={project.title}
-                        project={project}
-                        index={index}
-                        variants={cardVariants}
-                        reducedMotion={reduceMotion}
-                      />
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
-              </motion.div>
-            </div>
-
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </motion.div>
           </section>
 
-          <section className="relative scroll-mt-28 px-5 pb-14 pt-28 md:px-8 md:pb-18 md:pt-32">
-            <div className="mx-auto flex w-full max-w-[880px] flex-col items-center gap-2">
+          <section
+            id="projects"
+            className="relative scroll-mt-24 px-5 py-20 sm:px-6 md:px-8 md:py-28"
+          >
+            <div className="mx-auto w-full max-w-6xl">
+              <motion.div
+                className="flex flex-col gap-3"
+                variants={revealVariants}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+                  {t.projectsEyebrow}
+                </p>
+                <h2 className="font-serif text-[clamp(2.4rem,5vw,3.8rem)] font-medium italic leading-tight text-text-primary">
+                  {t.projectsTitle}
+                </h2>
+                <p className="max-w-2xl font-sans text-sm leading-relaxed text-text-secondary md:text-base">
+                  {t.projectsSubtitle}
+                </p>
+              </motion.div>
 
+              <motion.div
+                key={`project-grid-${language}`}
+                className="mt-12 grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                variants={gridVariants}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.08 }}
+              >
+                {projects[language].map((project, index) => (
+                  <ProjectCard
+                    key={project.title}
+                    project={project}
+                    index={index}
+                    variants={cardVariants}
+                    reducedMotion={reduceMotion}
+                    language={language}
+                  />
+                ))}
+              </motion.div>
+
+              <div className="mt-10 flex justify-center">
+                <a
+                  href="https://github.com/Bariskosee?tab=repositories"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t.viewAll} (${t.newTab})`}
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-5 py-2.5 font-sans text-sm font-semibold text-accent shadow-soft transition-colors hover:border-accent hover:bg-accent hover:text-bg-primary"
+                >
+                  {t.viewAll} ↗
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="about"
+            className="relative scroll-mt-24 border-y border-border-soft bg-bg-secondary/55 px-5 py-20 sm:px-6 md:px-8 md:py-28"
+          >
+            <motion.div
+              className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16"
+              variants={revealVariants}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.18 }}
+            >
+              <div>
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+                  {t.aboutEyebrow}
+                </p>
+                <h2 className="mt-3 font-serif text-[clamp(2.4rem,5vw,3.8rem)] font-medium italic leading-tight text-text-primary">
+                  {t.aboutTitle}
+                </h2>
+                <p className="mt-6 max-w-xl font-serif text-lg leading-relaxed text-text-secondary md:text-xl">
+                  {t.aboutBody}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-sans text-sm font-semibold uppercase tracking-[0.14em] text-accent">
+                  {t.journeyTitle}
+                </h3>
+                <ol className="mt-5 space-y-4">
+                  {t.journey.map((item, index) => (
+                    <li
+                      key={item.label}
+                      className="grid grid-cols-[2rem_1fr] gap-3 rounded-2xl border border-border-soft bg-surface-raised p-4 shadow-soft sm:grid-cols-[2.5rem_1fr] sm:p-5"
+                    >
+                      <span className="font-serif text-lg italic text-text-muted" aria-hidden="true">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <p className="font-serif text-xl font-medium text-text-primary">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 font-sans text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">
+                          {item.meta}
+                        </p>
+                        <p className="mt-3 font-sans text-sm leading-relaxed text-text-secondary">
+                          {item.body}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </motion.div>
+          </section>
+
+          <section
+            id="skills"
+            className="relative scroll-mt-24 px-5 py-20 sm:px-6 md:px-8 md:py-28"
+          >
+            <div className="mx-auto w-full max-w-5xl">
               <motion.div
                 className="text-center"
+                variants={revealVariants}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: true, amount: 0.6 }}
-                variants={revealVariants}
+                viewport={{ once: true, amount: 0.4 }}
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={`tech-copy-${language}`}
-                    variants={swapVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    <h2 className="font-serif text-[clamp(2.2rem,4vw,3.2rem)] font-medium italic leading-[1.2] text-text-secondary">
-                      {t.technologiesTitle}
-                    </h2>
-                    <p className="mt-1.5 font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted">
-                      tools &amp; stack
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+                  {t.technologiesEyebrow}
+                </p>
+                <h2 className="mt-3 font-serif text-[clamp(2.4rem,5vw,3.8rem)] font-medium italic leading-tight text-text-primary">
+                  {t.technologiesTitle}
+                </h2>
+                <p className="mx-auto mt-4 max-w-2xl font-sans text-sm leading-relaxed text-text-secondary md:text-base">
+                  {t.technologiesSubtitle}
+                </p>
               </motion.div>
 
               <motion.div
-                className="mt-7 w-full"
+                className="mt-8 w-full"
+                variants={revealVariants}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: true, amount: 0.12 }}
-                variants={revealVariants}
+                viewport={{ once: true, amount: 0.1 }}
               >
-                <TechSphere />
+                <TechSphere language={language} />
               </motion.div>
-
             </div>
           </section>
 
-          <motion.footer
-            className="bg-bg-primary px-5 pb-12 pt-8 text-center md:px-8 md:pt-10"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.8 }}
-            variants={revealVariants}
+          <section
+            id="contact"
+            className="relative scroll-mt-24 px-5 pb-10 pt-16 sm:px-6 md:px-8 md:pb-14"
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.p
-                key={`footer-${language}`}
-                className="font-sans text-sm tracking-wide text-text-muted"
-                variants={swapVariants}
-                initial="hidden"
-                animate="show"
-                exit="exit"
-              >
-                {t.footer}
-              </motion.p>
-            </AnimatePresence>
-          </motion.footer>
+            <motion.div
+              className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-accent/20 bg-accent px-6 py-12 text-center shadow-lift sm:px-10 md:py-16"
+              variants={revealVariants}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.3 }}
+            >
+              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-bg-primary/[0.78]">
+                {t.contactEyebrow}
+              </p>
+              <h2 className="mx-auto mt-4 max-w-3xl font-serif text-[clamp(2.3rem,5vw,4.2rem)] font-medium italic leading-tight text-bg-primary">
+                {t.contactTitle}
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl font-sans text-sm leading-relaxed text-bg-primary/[0.82] md:text-base">
+                {t.contactBody}
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <a
+                  href="mailto:kosebaris279@gmail.com"
+                  className="focus-ring rounded-full border border-bg-primary bg-bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-accent transition-colors hover:bg-transparent hover:text-bg-primary"
+                >
+                  {t.contactEmail}
+                </a>
+                <a
+                  href="https://linkedin.com/in/barisskose/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t.contactLinkedIn} (${t.newTab})`}
+                  className="focus-ring rounded-full border border-bg-primary/[0.45] px-5 py-2.5 font-sans text-sm font-semibold text-bg-primary transition-colors hover:border-bg-primary hover:bg-bg-primary hover:text-accent"
+                >
+                  {t.contactLinkedIn} ↗
+                </a>
+              </div>
+            </motion.div>
+          </section>
+
+          <footer className="bg-bg-primary px-5 pb-10 pt-6 text-center md:px-8">
+            <p className="font-sans text-sm tracking-wide text-text-muted">
+              {t.footer}
+            </p>
+          </footer>
         </main>
       </div>
     </>

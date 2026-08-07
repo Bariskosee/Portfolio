@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   siPython, siTypescript, siReact, siNextdotjs, siApachekafka,
   siDocker, siFastapi, siRedis, siPytorch, siOpenjdk, siSpring,
@@ -32,6 +32,31 @@ const TECHS: {
   { name: "Git",        mark: "Gt", icon: siGit,           color: "#f05032", textColor: "#ffffff" },
   { name: "Node.js",    mark: "Nd", icon: siNodedotjs,     color: "#5fa04e", textColor: "#10212a" },
 ];
+
+type Language = "EN" | "TR";
+
+const TECH_CATEGORIES = [
+  {
+    id: "backend",
+    label: { EN: "Backend", TR: "Backend" },
+    techIndexes: [6, 9, 10, 14],
+  },
+  {
+    id: "data-ml",
+    label: { EN: "Data & ML", TR: "Veri & ML" },
+    techIndexes: [0, 8, 11],
+  },
+  {
+    id: "frontend",
+    label: { EN: "Frontend", TR: "Frontend" },
+    techIndexes: [1, 2, 3],
+  },
+  {
+    id: "infrastructure",
+    label: { EN: "Infrastructure", TR: "Altyapı" },
+    techIndexes: [4, 5, 7, 12, 13],
+  },
+] as const;
 
 interface Orbit {
   cx: number; cy: number;
@@ -70,43 +95,42 @@ function makeSvgImage(tech: (typeof TECHS)[number]): HTMLImageElement {
   return img;
 }
 
-export function TechSphere() {
+interface TechSphereProps {
+  language?: Language;
+}
+
+export function TechSphere({ language = "TR" }: TechSphereProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
-  const startRef = useRef<number | null>(null);
-  const mouseRef = useRef({ x: -9999, y: -9999 });
-  const hoveredRef = useRef<number | null>(null);
-  const [hovered, setHovered] = useState<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
+    const canvasElement: HTMLCanvasElement = canvas;
+    const containerElement: HTMLDivElement = container;
 
-    const dpr = window.devicePixelRatio || 1;
-    let width = 0;
-    let height = 0;
-
-    function resize() {
-      const rect = container!.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
-      canvas!.width = width * dpr;
-      canvas!.height = height * dpr;
-      canvas!.style.width = `${width}px`;
-      canvas!.style.height = `${height}px`;
-    }
-    resize();
-
-    const ro = new ResizeObserver(resize);
-    ro.observe(container);
-
-    const ctxNullable = canvas.getContext("2d");
+    const ctxNullable = canvasElement.getContext("2d");
     if (!ctxNullable) return;
     const ctx = ctxNullable;
 
-    // Pre-load all SVG icons as images
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const initialRect = containerElement.getBoundingClientRect();
+
+    let dpr = window.devicePixelRatio || 1;
+    let width = 0;
+    let height = 0;
+    let animationFrame: number | null = null;
+    let previousTimestamp: number | null = null;
+    let elapsed = 0;
+    let prefersReducedMotion = motionQuery.matches;
+    let isDocumentVisible = !document.hidden;
+    let isInViewport =
+      initialRect.bottom > 0 &&
+      initialRect.right > 0 &&
+      initialRect.top < window.innerHeight &&
+      initialRect.left < window.innerWidth;
+
     const iconImgs = TECHS.map(makeSvgImage);
 
     function drawBadge(
@@ -114,7 +138,6 @@ export function TechSphere() {
       y: number,
       size: number,
       techIndex: number,
-      isHovered: boolean,
     ) {
       const tech = TECHS[techIndex];
       const radius = size * 0.24;
@@ -123,17 +146,6 @@ export function TechSphere() {
       ctx.save();
       ctx.translate(x, y);
 
-      if (isHovered) {
-        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.9);
-        grad.addColorStop(0, "rgba(138,162,198,0.24)");
-        grad.addColorStop(1, "rgba(138,162,198,0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Badge background
       ctx.fillStyle = tech.color;
       ctx.beginPath();
       ctx.roundRect(-half, -half, size, size, radius);
@@ -143,7 +155,6 @@ export function TechSphere() {
       ctx.lineWidth = Math.max(1, size * 0.035);
       ctx.stroke();
 
-      // Icon: SVG logo if loaded, fallback to text
       const img = iconImgs[techIndex];
       const iconSize = size * 0.62;
       if (img.complete && img.naturalWidth > 0) {
@@ -159,11 +170,10 @@ export function TechSphere() {
       ctx.restore();
     }
 
-    function draw(ts: number) {
-      if (!startRef.current) startRef.current = ts;
-      const elapsed = (ts - startRef.current) * 0.001;
+    function drawFrame(elapsedSeconds: number) {
+      if (width <= 0 || height <= 0) return;
 
-      ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+      ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
       ctx.save();
       ctx.scale(dpr, dpr);
 
@@ -173,16 +183,15 @@ export function TechSphere() {
       const ry = height * 0.42;
 
       const positions = ORBITS.map((o, i) => {
-        const t = elapsed * 0.38;
+        const t = elapsedSeconds * 0.38;
         const x = cx + o.cx * width * 0.4 + Math.sin(t * o.fx + o.phase) * rx * o.ax * 3.2;
         const y = cy + o.cy * height * 0.4 + Math.cos(t * o.fy + o.phaseY) * ry * o.ay * 3.2;
-        const depth = 0.55 + Math.sin(elapsed * 0.15 + o.phase) * 0.25 + o.z * 0.2;
+        const depth = 0.55 + Math.sin(elapsedSeconds * 0.15 + o.phase) * 0.25 + o.z * 0.2;
         return { x, y, depth, i };
       });
 
       const sorted = [...positions].sort((a, b) => a.depth - b.depth);
 
-      // Connection lines
       for (let a = 0; a < sorted.length; a++) {
         for (let b = a + 1; b < sorted.length; b++) {
           const pa = sorted[a];
@@ -203,91 +212,164 @@ export function TechSphere() {
         }
       }
 
-      // Hover detection
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
-      let newHovered: number | null = null;
-      for (const pos of positions) {
-        const dx = pos.x - mx;
-        const dy = pos.y - my;
-        const r = ICON_SIZE * 0.7 * pos.depth;
-        if (Math.sqrt(dx * dx + dy * dy) < r + 10) {
-          newHovered = pos.i;
-          break;
-        }
-      }
-      if (newHovered !== hoveredRef.current) {
-        hoveredRef.current = newHovered;
-        setHovered(newHovered);
-      }
-
-      // Draw badges
       for (const pos of sorted) {
         const { x, y, depth, i } = pos;
-        const isHovered = hoveredRef.current === i;
-        const size = ICON_SIZE * depth * (isHovered ? 1.18 : 1);
-        const opacity = isHovered ? 1 : 0.45 + depth * 0.55;
+        const size = ICON_SIZE * depth;
+        const opacity = 0.45 + depth * 0.55;
 
         ctx.globalAlpha = opacity;
-        drawBadge(x, y, size, i, isHovered);
+        drawBadge(x, y, size, i);
         ctx.globalAlpha = 1;
-
-        if (isHovered) {
-          ctx.font = "500 12px Geist, system-ui, sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "top";
-          const labelY = y + size / 2 + 5;
-          const tw = ctx.measureText(TECHS[i].name).width;
-          ctx.fillStyle = "rgba(252,252,249,0.94)";
-          ctx.beginPath();
-          ctx.roundRect(x - tw / 2 - 6, labelY - 2, tw + 12, 18, 4);
-          ctx.fill();
-          ctx.fillStyle = "#131a27";
-          ctx.fillText(TECHS[i].name, x, labelY);
-        }
       }
 
       ctx.restore();
-      rafRef.current = requestAnimationFrame(draw);
     }
 
-    rafRef.current = requestAnimationFrame(draw);
-
-    function onMove(e: MouseEvent) {
-      const rect = canvas!.getBoundingClientRect();
-      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    }
-    function onLeave() {
-      mouseRef.current = { x: -9999, y: -9999 };
+    function canAnimate() {
+      return !prefersReducedMotion && isInViewport && isDocumentVisible;
     }
 
-    canvas.addEventListener("mousemove", onMove);
-    canvas.addEventListener("mouseleave", onLeave);
+    function stopAnimation() {
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+      previousTimestamp = null;
+    }
+
+    function animate(timestamp: number) {
+      animationFrame = null;
+      if (!canAnimate()) {
+        previousTimestamp = null;
+        return;
+      }
+
+      if (previousTimestamp !== null) {
+        elapsed += Math.min((timestamp - previousTimestamp) * 0.001, 0.1);
+      }
+      previousTimestamp = timestamp;
+      drawFrame(elapsed);
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    function syncAnimation() {
+      if (!canAnimate()) {
+        stopAnimation();
+        if (prefersReducedMotion) {
+          elapsed = 0;
+          drawFrame(0);
+        }
+        return;
+      }
+
+      if (animationFrame === null) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    }
+
+    function resize() {
+      const rect = containerElement.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      width = rect.width;
+      height = rect.height;
+      canvasElement.width = Math.max(1, Math.round(width * dpr));
+      canvasElement.height = Math.max(1, Math.round(height * dpr));
+      canvasElement.style.width = `${width}px`;
+      canvasElement.style.height = `${height}px`;
+      drawFrame(prefersReducedMotion ? 0 : elapsed);
+    }
+
+    function onVisibilityChange() {
+      isDocumentVisible = !document.hidden;
+      syncAnimation();
+    }
+
+    function onMotionPreferenceChange(event: MediaQueryListEvent) {
+      prefersReducedMotion = event.matches;
+      elapsed = 0;
+      previousTimestamp = null;
+      syncAnimation();
+    }
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(containerElement);
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isInViewport = entry.isIntersecting;
+      syncAnimation();
+    });
+    intersectionObserver.observe(containerElement);
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    motionQuery.addEventListener("change", onMotionPreferenceChange);
+
+    const onIconLoad = () => {
+      if (!canAnimate()) {
+        drawFrame(prefersReducedMotion ? 0 : elapsed);
+      }
+    };
+    iconImgs.forEach((image) => image.addEventListener("load", onIconLoad));
+
+    resize();
+    syncAnimation();
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
-      ro.disconnect();
-      canvas.removeEventListener("mousemove", onMove);
-      canvas.removeEventListener("mouseleave", onLeave);
+      stopAnimation();
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      motionQuery.removeEventListener("change", onMotionPreferenceChange);
+      iconImgs.forEach((image) => image.removeEventListener("load", onIconLoad));
     };
   }, []);
 
   return (
-    <div className="w-full">
-      <ul className="sr-only">
-        {TECHS.map((tech) => (
-          <li key={tech.name}>{tech.name}</li>
-        ))}
-      </ul>
-      <div ref={containerRef} className="relative h-[360px] w-full sm:h-[420px] md:h-[480px]">
+    <div className="flex w-full flex-col gap-6">
+      <div
+        ref={containerRef}
+        className="relative order-2 h-[300px] w-full sm:h-[380px] md:order-1 md:h-[480px]"
+      >
         <canvas
           ref={canvasRef}
           aria-hidden="true"
-          style={{
-            display: "block",
-            cursor: hovered !== null ? "pointer" : "default",
-          }}
+          className="pointer-events-none block"
         />
+      </div>
+
+      <div
+        className="order-1 grid grid-cols-1 gap-3 sm:grid-cols-2 md:order-2 lg:grid-cols-4"
+        role="group"
+        aria-label={language === "TR" ? "Teknoloji yetkinlikleri" : "Technology skills"}
+      >
+        {TECH_CATEGORIES.map((category) => (
+          <section
+            key={category.id}
+            className="rounded-2xl border border-border-soft bg-surface-raised p-4 shadow-soft"
+          >
+            <h3 className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
+              {category.label[language]}
+            </h3>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {category.techIndexes.map((techIndex) => {
+                const tech = TECHS[techIndex];
+
+                return (
+                  <li
+                    key={tech.name}
+                    className="inline-flex min-h-8 items-center gap-2 rounded-full border border-border-soft bg-bg-surface px-3 py-1.5 font-sans text-sm font-medium leading-none text-text-primary"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="size-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: tech.color }}
+                    />
+                    {tech.name}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
       </div>
     </div>
   );

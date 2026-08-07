@@ -3,14 +3,14 @@ export const SITE_URL =
   "https://portfolio-three-nu-99.vercel.app";
 
 export const SITE_NAME = "Barış Köse";
-export const SITE_TITLE = "Barış Köse - Software Engineer";
+export const SITE_TITLE = "Barış Köse — Software Engineering Portfolio";
 export const SITE_DESCRIPTION =
-  "Istanbul-based software engineer focused on React, TypeScript, Next.js, distributed systems, and AI/ML projects.";
+  "Istanbul-based software engineering student building backend, distributed systems, and AI/ML projects.";
 
 export const SITE_KEYWORDS = [
   "Barış Köse",
   "software engineer",
-  "frontend engineer",
+  "software engineering student",
   "full-stack developer",
   "distributed systems",
   "AI/ML",
