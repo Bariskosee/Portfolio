@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import MatrixName from "./components/MatrixName";
 import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
@@ -131,6 +131,8 @@ const copy = {
   EN: {
     languageLabel: "Language selection",
     navigationLabel: "Primary navigation",
+    openMenu: "Open navigation menu",
+    closeMenu: "Close navigation menu",
     navWork: "Work",
     navAbout: "About",
     navSkills: "Skills",
@@ -187,6 +189,8 @@ const copy = {
   TR: {
     languageLabel: "Dil seçimi",
     navigationLabel: "Ana navigasyon",
+    openMenu: "Navigasyon menüsünü aç",
+    closeMenu: "Navigasyon menüsünü kapat",
     navWork: "Projeler",
     navAbout: "Hakkımda",
     navSkills: "Yetkinlikler",
@@ -293,6 +297,8 @@ export default function Home() {
     getServerLanguageSnapshot,
   );
   const [scrolled, setScrolled] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const reduceMotion = !!useReducedMotion();
   const t = copy[language];
 
@@ -308,6 +314,18 @@ export default function Home() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileNavOpen]);
 
   const selectLanguage = (nextLanguage: Language) => {
     try {
@@ -404,6 +422,34 @@ export default function Home() {
               ))}
             </nav>
 
+            <button
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => setMobileNavOpen((open) => !open)}
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-nav-panel"
+              aria-label={mobileNavOpen ? t.closeMenu : t.openMenu}
+              className="focus-ring flex h-11 w-11 items-center justify-center rounded-full border border-border-soft bg-surface-raised text-text-secondary shadow-card transition-colors hover:text-accent lg:hidden"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                {mobileNavOpen ? (
+                  <path
+                    d="M4.5 4.5l9 9M13.5 4.5l-9 9"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                ) : (
+                  <path
+                    d="M3 5.5h12M3 9h12M3 12.5h12"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                )}
+              </svg>
+            </button>
+
             <div
               role="group"
               aria-label={t.languageLabel}
@@ -417,7 +463,7 @@ export default function Home() {
                   aria-pressed={language === option}
                   whileHover={microHover}
                   whileTap={microTap}
-                  className={`focus-ring min-h-7 min-w-11 rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] transition-colors ${
+                  className={`focus-ring inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 py-1.5 font-sans text-xs font-semibold tracking-[0.16em] transition-colors ${
                     language === option
                       ? "bg-accent text-bg-surface"
                       : "text-text-secondary hover:text-accent"
@@ -428,12 +474,50 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          <AnimatePresence>
+            {mobileNavOpen && (
+              <>
+                <motion.div
+                  key="mobile-nav-overlay"
+                  className="fixed inset-0 lg:hidden"
+                  aria-hidden="true"
+                  onClick={() => setMobileNavOpen(false)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.18 }}
+                />
+                <motion.nav
+                  key="mobile-nav-panel"
+                  id="mobile-nav-panel"
+                  aria-label={t.navigationLabel}
+                  initial={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.18, ease: easePremium }}
+                  className="absolute right-4 top-full mt-2 flex w-56 flex-col gap-1 rounded-2xl border border-border-soft bg-surface-raised p-2 shadow-soft sm:right-6 md:right-8 lg:hidden"
+                >
+                  {navigation.map((item) => (
+                    <a
+                      key={`mobile-menu-${item.href}`}
+                      href={item.href}
+                      onClick={() => setMobileNavOpen(false)}
+                      className="focus-ring flex min-h-11 items-center rounded-lg px-3 font-sans text-sm font-semibold text-text-secondary transition-colors hover:bg-accent-soft hover:text-accent"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </motion.nav>
+              </>
+            )}
+          </AnimatePresence>
         </header>
 
         <main id="main-content">
           <section
             id="home"
-            className="relative flex min-h-[100svh] items-center px-5 pb-16 pt-28 sm:px-6 md:px-8 md:pb-20 md:pt-32"
+            className="relative flex items-start px-5 pb-16 pt-28 sm:px-6 md:px-8 md:pb-20 md:pt-32 lg:min-h-[100svh] lg:items-center"
           >
             <motion.div
               className="mx-auto flex w-full max-w-4xl flex-col items-center text-center"
@@ -481,7 +565,7 @@ export default function Home() {
                   href="#projects"
                   whileHover={microHover}
                   whileTap={microTap}
-                  className="focus-ring rounded-full border border-accent bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-bg-primary transition-colors hover:bg-accent-hover"
+                  className="focus-ring rounded-full border border-accent bg-accent px-5 py-3 font-sans text-sm font-semibold text-bg-primary transition-colors hover:bg-accent-hover"
                 >
                   {t.ctaProjects}
                 </motion.a>
@@ -492,7 +576,7 @@ export default function Home() {
                   aria-label={`${t.ctaGitHub} (${t.newTab})`}
                   whileHover={microHover}
                   whileTap={microTap}
-                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-2.5 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-3 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
                 >
                   {t.ctaGitHub}
                 </motion.a>
@@ -503,7 +587,7 @@ export default function Home() {
                   aria-label={`${t.ctaLinkedIn} (${t.newTab})`}
                   whileHover={microHover}
                   whileTap={microTap}
-                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-2.5 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-3 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
                 >
                   {t.ctaLinkedIn}
                 </motion.a>
@@ -511,26 +595,11 @@ export default function Home() {
                   href="mailto:kosebaris279@gmail.com"
                   whileHover={microHover}
                   whileTap={microTap}
-                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-2.5 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-4 py-3 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-bg-surface"
                 >
                   {t.ctaEmail}
                 </motion.a>
               </div>
-
-              <nav
-                aria-label={t.navigationLabel}
-                className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl border border-border-soft bg-surface-raised px-4 py-3 shadow-soft lg:hidden"
-              >
-                {navigation.map((item) => (
-                  <a
-                    key={`mobile-${item.href}`}
-                    href={item.href}
-                    className="focus-ring rounded-sm font-sans text-xs font-semibold tracking-wide text-text-secondary transition-colors hover:text-accent"
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </nav>
             </motion.div>
           </section>
 
@@ -583,7 +652,7 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${t.viewAll} (${t.newTab})`}
-                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-5 py-2.5 font-sans text-sm font-semibold text-accent shadow-soft transition-colors hover:border-accent hover:bg-accent hover:text-bg-primary"
+                  className="focus-ring rounded-full border border-border-strong bg-surface-raised px-5 py-3 font-sans text-sm font-semibold text-accent shadow-soft transition-colors hover:border-accent hover:bg-accent hover:text-bg-primary"
                 >
                   {t.viewAll} ↗
                 </a>
@@ -703,7 +772,7 @@ export default function Home() {
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <a
                   href="mailto:kosebaris279@gmail.com"
-                  className="focus-ring rounded-full border border-bg-primary bg-bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-accent transition-colors hover:bg-transparent hover:text-bg-primary"
+                  className="focus-ring rounded-full border border-bg-primary bg-bg-primary px-5 py-3 font-sans text-sm font-semibold text-accent transition-colors hover:bg-transparent hover:text-bg-primary"
                 >
                   {t.contactEmail}
                 </a>
@@ -712,7 +781,7 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${t.contactLinkedIn} (${t.newTab})`}
-                  className="focus-ring rounded-full border border-bg-primary/[0.45] px-5 py-2.5 font-sans text-sm font-semibold text-bg-primary transition-colors hover:border-bg-primary hover:bg-bg-primary hover:text-accent"
+                  className="focus-ring rounded-full border border-bg-primary/[0.45] px-5 py-3 font-sans text-sm font-semibold text-bg-primary transition-colors hover:border-bg-primary hover:bg-bg-primary hover:text-accent"
                 >
                   {t.contactLinkedIn} ↗
                 </a>

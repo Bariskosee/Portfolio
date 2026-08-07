@@ -262,7 +262,7 @@ function ProjectLink({ href, label, ariaLabel, externalHint, github = false }: P
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       aria-label={isExternal ? `${ariaLabel} (${externalHint})` : ariaLabel}
-      className={`focus-ring transition-premium-fast inline-flex min-h-9 items-center justify-center gap-2 rounded-full border px-3 py-2 font-sans text-xs font-semibold no-underline ${
+      className={`focus-ring transition-premium-fast inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-3 py-2 font-sans text-xs font-semibold no-underline ${
         github
           ? "border-[#202837] bg-[#202837] text-[#fcfcf9] hover:border-[#344054] hover:bg-[#344054]"
           : "border-[rgba(19,26,39,0.14)] bg-[#f7f6f1] text-[#202837] hover:border-[#202837] hover:bg-[#eef1f6]"
@@ -571,7 +571,7 @@ export default function ProjectCard({
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`${project.metricSource} (${t.newTab})`}
-                        className="focus-ring rounded-sm underline decoration-border-strong underline-offset-2 transition-colors hover:text-accent"
+                        className="focus-ring -mx-0.5 inline-block rounded-sm px-0.5 py-1 underline decoration-border-strong underline-offset-2 transition-colors hover:text-accent"
                       >
                         {project.metricSource} ↗
                       </a>

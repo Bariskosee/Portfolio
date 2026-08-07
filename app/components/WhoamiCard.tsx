@@ -340,7 +340,7 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
           aria-haspopup="dialog"
           aria-expanded="false"
           aria-controls="profile-about-panel"
-          className={`focus-ring fixed left-4 top-4 z-50 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-bg-surface px-3.5 py-2 font-sans text-xs font-semibold tracking-[0.12em] text-[#1f4d3a] shadow-[0_6px_18px_rgba(26,29,46,0.12)] hover:bg-accent-soft sm:hidden ${transitionClass}`}
+          className={`focus-ring fixed left-4 top-4 z-50 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/30 bg-bg-surface px-3.5 py-2 font-sans text-xs font-semibold tracking-[0.12em] text-accent-deep shadow-[0_6px_18px_rgba(26,29,46,0.12)] hover:bg-accent-soft sm:hidden ${transitionClass}`}
         >
           <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
           {t.about}
@@ -430,7 +430,7 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
             aria-haspopup="dialog"
             aria-expanded="false"
             aria-controls="profile-about-panel"
-            className={`focus-ring w-full border-t border-accent/15 bg-bg-surface px-3 py-2.5 font-sans text-xs font-semibold tracking-widest text-[#1f4d3a] hover:bg-accent-soft ${transitionClass}`}
+            className={`focus-ring min-h-11 w-full border-t border-accent/15 bg-bg-surface px-3 py-2.5 font-sans text-xs font-semibold tracking-widest text-accent-deep hover:bg-accent-soft ${transitionClass}`}
           >
             {t.about.toUpperCase()}
           </button>
@@ -443,11 +443,17 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
           type="button"
           onClick={handleSideTabClick}
           aria-label={t.openProfile}
-          className={`focus-ring fixed left-0 top-[40%] z-50 hidden h-12 w-10 -translate-y-1/2 items-center justify-center rounded-r-xl bg-accent-soft text-accent shadow-[4px_0_12px_rgba(45,95,76,0.18)] hover:translate-x-[2px] sm:flex ${transitionClass}`}
+          className={`focus-ring fixed left-0 top-[40%] z-50 hidden h-12 w-11 -translate-y-1/2 items-center justify-center rounded-r-xl bg-accent-soft text-accent shadow-[4px_0_12px_rgba(45,95,76,0.18)] hover:translate-x-[2px] sm:flex ${transitionClass}`}
         >
-          <span className="text-xl leading-none" aria-hidden="true">
-            👾
-          </span>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" />
+            <path
+              d="M3 15c0-3 2.7-5 6-5s6 2 6 5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       )}
 
@@ -457,7 +463,7 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
           type="button"
           onClick={openProfileCard}
           aria-label={t.openProfile}
-          className={`focus-ring fixed left-8 top-6 z-50 hidden items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] hover:bg-accent hover:text-bg-primary sm:flex ${transitionClass}`}
+          className={`focus-ring fixed left-8 top-6 z-50 hidden min-h-11 items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-accent-deep hover:bg-accent hover:text-bg-primary sm:flex ${transitionClass}`}
         >
           <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
           {t.about}
