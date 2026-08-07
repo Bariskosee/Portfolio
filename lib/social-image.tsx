@@ -51,7 +51,7 @@ export function generateSocialImage() {
                 textTransform: "uppercase",
               }}
             >
-              Software Engineer
+              Software Engineering Student
             </div>
             <div
               style={{

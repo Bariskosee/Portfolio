@@ -1,22 +1,86 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import type { CSSProperties } from 'react';
 import { motion, useDragControls } from 'framer-motion';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
-type CardState = 'open' | 'panel' | 'closed';
-type DisplayMode = 'card' | 'panel' | 'pill' | 'sideTab';
+type CardState = 'open' | 'closed';
+type PanelTrigger = 'mobile' | 'desktop';
 
 interface WhoamiCardProps {
   language?: 'EN' | 'TR';
 }
 
+const copy = {
+  EN: {
+    about: 'About me',
+    aboutEyebrow: 'A little context',
+    aboutTitle: "Hi, I'm Barış.",
+    body: [
+      "I love building things through code, exploring new technologies, and shipping something better with every project. I've spent two summers in the US through Work & Travel, and studied at Universidad de Alicante in Spain through the Erasmus program.",
+      'I focus on performance, accessibility, and consistent design systems on the frontend. On the backend, I care about scalable architecture and clean code practices.',
+      'My goal is to create digital experiences that are visually strong and technically sustainable, improving the user experience with every iteration.',
+    ],
+    closeAbout: 'Close about panel',
+    closeProfile: 'Close profile card',
+    openProfile: 'Open profile card',
+    portraitAlt: 'Portrait of Barış Köse',
+    portraitUnavailable: 'Portrait unavailable',
+    profileCard: 'Barış Köse profile card',
+  },
+  TR: {
+    about: 'Hakkımda',
+    aboutEyebrow: 'Kısaca ben',
+    aboutTitle: 'Merhaba, ben Barış.',
+    body: [
+      "Kod yazarak bir şeyler üretmeyi, yeni teknolojiler keşfetmeyi ve her projede bir öncekinden daha iyisini ortaya koymayı seviyorum. Work & Travel programıyla ABD'de iki yaz geçirdim; Erasmus programıyla da İspanya'daki Universidad de Alicante'de eğitim aldım.",
+      'Frontend tarafında performans, erişilebilirlik ve tutarlı tasarım sistemlerine odaklanıyorum. Backend tarafında ise ölçeklenebilir mimarilere ve temiz kod pratiklerine önem veriyorum.',
+      'Hedefim, estetik açıdan güçlü ve teknik olarak sürdürülebilir dijital deneyimler üretmek; her iterasyonda kullanıcı deneyimini somut biçimde iyileştirmek.',
+    ],
+    closeAbout: 'Hakkımda panelini kapat',
+    closeProfile: 'Profil kartını kapat',
+    openProfile: 'Profil kartını aç',
+    portraitAlt: 'Barış Köse portresi',
+    portraitUnavailable: 'Portre kullanılamıyor',
+    profileCard: 'Barış Köse profil kartı',
+  },
+} as const;
+
+const FOCUSABLE_ELEMENTS = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+function subscribeToReducedMotion(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  mediaQuery.addEventListener('change', onStoreChange);
+  return () => mediaQuery.removeEventListener('change', onStoreChange);
+}
+
+function getReducedMotionPreference() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function getServerReducedMotionPreference() {
+  return false;
+}
+
 export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
+  const t = copy[language];
   const [cardState, setCardState] = useState<CardState>('open');
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [dragConstraints, setDragConstraints] = useState({
     left: 0,
@@ -25,93 +89,84 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
     bottom: 0,
   });
   const [portraitFailed, setPortraitFailed] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
+  const reducedMotion = useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionPreference,
+    getServerReducedMotionPreference,
+  );
 
   const dragControls = useDragControls();
   const cardRef = useRef<HTMLDivElement>(null);
-  const aboutButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileAboutButtonRef = useRef<HTMLButtonElement>(null);
+  const desktopAboutButtonRef = useRef<HTMLButtonElement>(null);
+  const sideTabButtonRef = useRef<HTMLButtonElement>(null);
+  const closedCardButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const panelCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const panelTriggerRef = useRef<PanelTrigger>('mobile');
+  const shouldRestoreFocusRef = useRef(false);
+  const pendingDesktopFocusRef = useRef<'card' | 'side' | 'closed' | null>(null);
 
-  // Reduced-motion listener
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
+    let animationFrame: number | null = null;
 
-  // Scroll listener — RAF-throttled, passive
-  useEffect(() => {
-    let rafId: number | null = null;
-    const handleScroll = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        setIsScrolled(window.scrollY > 200);
-        rafId = null;
+    const updateScrollState = () => {
+      if (animationFrame !== null) return;
+
+      animationFrame = window.requestAnimationFrame(() => {
+        const nextIsScrolled = window.scrollY > 200;
+
+        if (nextIsScrolled && cardRef.current?.contains(document.activeElement)) {
+          pendingDesktopFocusRef.current = 'side';
+        } else if (!nextIsScrolled && sideTabButtonRef.current === document.activeElement) {
+          pendingDesktopFocusRef.current = 'card';
+        }
+
+        setIsScrolled(nextIsScrolled);
+        animationFrame = null;
       });
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    updateScrollState();
+    window.addEventListener('scroll', updateScrollState, { passive: true });
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', updateScrollState);
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
     };
   }, []);
 
-  // Panel position computation
-  const computePanelPosition = useCallback(() => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const isMobile = window.innerWidth <= 640;
-    const margin = isMobile ? 12 : 16;
-    const headerClearance = isMobile ? 74 : 92;
-    const panelWidth = Math.min(520, window.innerWidth - margin * 2);
-    const panelMaxHeight = Math.min(380, window.innerHeight - headerClearance - margin);
+  useEffect(() => {
+    if (isPanelOpen || pendingDesktopFocusRef.current === null) return;
 
-    if (isMobile) {
-      const top = Math.min(rect.bottom + 8, window.innerHeight - panelMaxHeight - margin);
-      setPanelStyle({
-        top: Math.max(headerClearance, top),
-        left: margin,
-        right: margin,
-        maxHeight: panelMaxHeight,
-      });
-      return;
-    }
+    const pendingTarget = pendingDesktopFocusRef.current;
+    const target =
+      pendingTarget === 'closed' && cardState === 'closed'
+        ? closedCardButtonRef.current
+        : pendingTarget === 'side' && cardState === 'open' && isScrolled
+          ? sideTabButtonRef.current
+          : pendingTarget === 'card' && cardState === 'open' && !isScrolled
+            ? cardRef.current
+            : null;
 
-    const top = Math.min(
-      Math.max(rect.top, headerClearance),
-      window.innerHeight - panelMaxHeight - margin,
-    );
+    if (!target) return;
 
-    if (window.innerWidth - rect.right - margin >= 300) {
-      setPanelStyle({
-        top,
-        left: Math.min(rect.right + margin, window.innerWidth - panelWidth - margin),
-        width: panelWidth,
-        maxHeight: panelMaxHeight,
-      });
-    } else {
-      setPanelStyle({
-        top,
-        right: Math.min(window.innerWidth - rect.left + margin, window.innerWidth - panelWidth - margin),
-        width: panelWidth,
-        maxHeight: panelMaxHeight,
-      });
-    }
-  }, []);
+    const animationFrame = window.requestAnimationFrame(() => {
+      if (target.getClientRects().length === 0) return;
+      target.focus({ preventScroll: true });
+      pendingDesktopFocusRef.current = null;
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [cardState, isPanelOpen, isScrolled]);
 
   const updateDragConstraints = useCallback(() => {
     if (!cardRef.current) return;
 
     const rect = cardRef.current.getBoundingClientRect();
-    const isMobile = window.innerWidth < 640;
-    const baseTop = isMobile ? 12 : 24;
-    const baseLeft = isMobile ? 12 : 24;
     const safeMargin = 8;
-
+    const baseTop = 24;
+    const baseLeft = 24;
     const left = -baseLeft + safeMargin;
     const top = -baseTop + safeMargin;
     const right = Math.max(
@@ -122,33 +177,26 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
       top,
       window.innerHeight - baseTop - rect.height - safeMargin,
     );
+    const boundedPosition = {
+      x: Math.min(Math.max(dragPosition.x, left), right),
+      y: Math.min(Math.max(dragPosition.y, top), bottom),
+    };
 
-    const boundedX = Math.min(Math.max(dragPosition.x, left), right);
-    const boundedY = Math.min(Math.max(dragPosition.y, top), bottom);
-
-    if (boundedX !== dragPosition.x || boundedY !== dragPosition.y) {
-      setDragPosition({ x: boundedX, y: boundedY });
+    if (
+      boundedPosition.x !== dragPosition.x ||
+      boundedPosition.y !== dragPosition.y
+    ) {
+      setDragPosition(boundedPosition);
     }
 
     setDragConstraints({ left, right, top, bottom });
   }, [dragPosition.x, dragPosition.y]);
 
-  // Compute panel position when it opens; re-compute on resize
   useEffect(() => {
-    if (cardState !== 'panel') return;
-    computePanelPosition();
-    requestAnimationFrame(() => panelRef.current?.focus({ preventScroll: true }));
-    window.addEventListener('resize', computePanelPosition);
-    return () => window.removeEventListener('resize', computePanelPosition);
-  }, [cardState, computePanelPosition]);
+    if (cardState === 'open' && !isScrolled && !isPanelOpen) {
+      updateDragConstraints();
+    }
 
-  const closePanel = useCallback(() => {
-    setCardState('open');
-    requestAnimationFrame(() => aboutButtonRef.current?.focus({ preventScroll: true }));
-  }, []);
-
-  useEffect(() => {
-    updateDragConstraints();
     window.addEventListener('resize', updateDragConstraints);
     window.addEventListener('orientationchange', updateDragConstraints);
 
@@ -156,78 +204,156 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
       window.removeEventListener('resize', updateDragConstraints);
       window.removeEventListener('orientationchange', updateDragConstraints);
     };
-  }, [updateDragConstraints]);
+  }, [cardState, isPanelOpen, isScrolled, updateDragConstraints]);
 
-  // ESC → close panel back to open
-  useEffect(() => {
-    if (cardState !== 'panel') return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closePanel();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [cardState, closePanel]);
+  const openPanel = useCallback((trigger: PanelTrigger) => {
+    panelTriggerRef.current = trigger;
+    shouldRestoreFocusRef.current = false;
+    setIsPanelOpen(true);
+  }, []);
 
-  // Outside-click → close panel back to open
+  const closePanel = useCallback(() => {
+    shouldRestoreFocusRef.current = true;
+    setIsPanelOpen(false);
+  }, []);
+
   useEffect(() => {
-    if (cardState !== 'panel') return;
-    const handler = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (!cardRef.current?.contains(t) && !panelRef.current?.contains(t)) {
+    if (isPanelOpen || !shouldRestoreFocusRef.current) return;
+
+    shouldRestoreFocusRef.current = false;
+    const animationFrame = window.requestAnimationFrame(() => {
+      const preferredTrigger =
+        panelTriggerRef.current === 'mobile'
+          ? mobileAboutButtonRef.current
+          : desktopAboutButtonRef.current;
+      const fallbackTrigger =
+        panelTriggerRef.current === 'mobile'
+          ? desktopAboutButtonRef.current
+          : mobileAboutButtonRef.current;
+      const visibleTrigger =
+        preferredTrigger && preferredTrigger.getClientRects().length > 0
+          ? preferredTrigger
+          : fallbackTrigger;
+
+      visibleTrigger?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [isPanelOpen]);
+
+  useEffect(() => {
+    if (!isPanelOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      panelCloseButtonRef.current?.focus({ preventScroll: true });
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
         closePanel();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !panelRef.current) return;
+
+      const focusableElements = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS),
+      ).filter((element) => element.getClientRects().length > 0);
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        panelRef.current.focus({ preventScroll: true });
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (
+        event.shiftKey &&
+        (activeElement === firstElement || !panelRef.current.contains(activeElement))
+      ) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (
+        !event.shiftKey &&
+        (activeElement === lastElement || !panelRef.current.contains(activeElement))
+      ) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [cardState, closePanel]);
 
-  // Derived display mode — state machine unchanged
-  const displayMode: DisplayMode =
-    cardState === 'closed'
-      ? 'pill'
-      : isScrolled
-        ? 'sideTab'
-        : cardState === 'panel'
-          ? 'panel'
-          : 'card';
+    document.addEventListener('keydown', handleKeyDown);
 
-  useEffect(() => {
-    if (displayMode === 'card' || displayMode === 'panel') {
-      updateDragConstraints();
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+    };
+  }, [closePanel, isPanelOpen]);
+
+  const closeProfileCard = () => {
+    if (cardRef.current?.contains(document.activeElement)) {
+      pendingDesktopFocusRef.current = 'closed';
     }
-  }, [displayMode, updateDragConstraints]);
+    setCardState('closed');
+  };
 
-  const fadeMotion = reducedMotion
-    ? 'transition-none'
-    : 'transition-opacity duration-200 ease-out';
-  const hoverMotion = reducedMotion ? '' : 'transition-colors duration-200';
-
-  const aboutLabel = language === 'TR' ? 'HAKKIMDA' : 'ABOUT';
-  const aboutCopy =
-    language === 'TR'
-      ? [
-          'Kodlama yoluyla bir şeyler üretmeyi, yeni teknolojiler keşfetmeyi ve her projede bir öncekinden daha iyi bir şey ortaya koymayı seviyorum. ABD\'de Work & Travel programıyla iki yaz geçirdim; Erasmus programıyla da İspanya\'da Universidad de Alicante\'de okudum.',
-          'Frontend tarafında performans, erişilebilirlik ve tutarlı tasarım sistemleri üzerine çalışır; backend tarafında ise ölçeklenebilir mimariler ve temiz kod pratiklerini önemser.',
-          'Hedefi, estetik olarak güçlü ve teknik olarak sürdürülebilir dijital deneyimler üretmek; her iterasyonda kullanıcı deneyimini somut olarak iyileştirmektir.',
-        ]
-      : [
-          "I love building things through code, exploring new technologies, and shipping something better with every project. I've spent two summers in the US through Work & Travel, and studied abroad at Universidad de Alicante in Spain through the Erasmus program.",
-          'He focuses on performance, accessibility, and consistent design systems on the frontend, while valuing scalable architecture and clean code practices on the backend.',
-          'His goal is to build digital experiences that are visually strong and technically sustainable, improving user experience in every iteration.',
-        ];
+  const openProfileCard = () => {
+    if (closedCardButtonRef.current === document.activeElement) {
+      pendingDesktopFocusRef.current = isScrolled ? 'side' : 'card';
+    }
+    setCardState('open');
+  };
 
   const handleSideTabClick = () => {
-    setCardState('open');
+    if (sideTabButtonRef.current === document.activeElement) {
+      pendingDesktopFocusRef.current = 'card';
+    }
     window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
   };
 
+  const transitionClass = reducedMotion
+    ? 'transition-none'
+    : 'transition-colors duration-200';
+
   return (
     <>
-      {/* Card — States A + B */}
-      {cardState !== 'closed' && (
+      {!isPanelOpen && (
+        <button
+          ref={mobileAboutButtonRef}
+          type="button"
+          onClick={() => openPanel('mobile')}
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-controls="profile-about-panel"
+          className={`focus-ring fixed left-4 top-4 z-50 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-bg-surface px-3.5 py-2 font-sans text-xs font-semibold tracking-[0.12em] text-[#1f4d3a] shadow-[0_6px_18px_rgba(26,29,46,0.12)] hover:bg-accent-soft sm:hidden ${transitionClass}`}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+          {t.about}
+        </button>
+      )}
+
+      {!isPanelOpen && cardState === 'open' && !isScrolled && (
         <motion.div
           ref={cardRef}
-          drag={displayMode === 'card' && !isScrolled}
+          role="group"
+          aria-label={t.profileCard}
+          tabIndex={-1}
+          drag
           dragListener={false}
           dragControls={dragControls}
           dragConstraints={dragConstraints}
@@ -236,39 +362,29 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
           onDragStart={() => setIsDragging(true)}
           onDragEnd={(_, info) => {
             setIsDragging(false);
-            setDragPosition((prev) => ({
-              x: prev.x + info.offset.x,
-              y: prev.y + info.offset.y,
+            setDragPosition((position) => ({
+              x: position.x + info.offset.x,
+              y: position.y + info.offset.y,
             }));
           }}
           style={{ x: dragPosition.x, y: dragPosition.y }}
-          aria-label="Profile card"
-          aria-hidden={displayMode === 'sideTab'}
-          className={`fixed top-3 left-3 z-50 flex w-28 flex-col overflow-hidden rounded-2xl border border-accent/30 bg-bg-surface shadow-[0_8px_24px_rgba(26,29,46,0.12)] sm:top-6 sm:left-6 sm:w-[188px] ${fadeMotion} ${
+          className={`fixed left-6 top-6 z-50 hidden w-[188px] flex-col overflow-hidden rounded-2xl border border-accent/30 bg-bg-surface shadow-[0_8px_24px_rgba(26,29,46,0.12)] sm:flex ${
             isDragging ? 'z-[60]' : ''
-          } ${
-            displayMode === 'sideTab'
-              ? 'pointer-events-none opacity-0'
-              : 'opacity-100'
           }`}
         >
-          {/* Titlebar */}
           <div
-            className={`flex items-center justify-end border-b border-accent/15 px-2 py-1.5 ${
-              displayMode === 'card' ? 'cursor-grab active:cursor-grabbing' : ''
-            }`}
+            className="flex cursor-grab items-center justify-end border-b border-accent/15 px-2 py-1.5 active:cursor-grabbing"
             style={{ touchAction: 'none' }}
-            onPointerDown={(e) => {
-              if (displayMode !== 'card') return;
-              if ((e.target as HTMLElement).closest('button')) return;
-              dragControls.start(e);
+            onPointerDown={(event) => {
+              if ((event.target as HTMLElement).closest('button')) return;
+              dragControls.start(event);
             }}
           >
             <button
               type="button"
-              onClick={() => setCardState('closed')}
-              aria-label="Close profile card"
-              className={`focus-ring flex h-5 w-5 items-center justify-center rounded-full text-text-muted hover:bg-accent-soft hover:text-accent ${hoverMotion}`}
+              onClick={closeProfileCard}
+              aria-label={t.closeProfile}
+              className={`focus-ring flex h-6 w-6 items-center justify-center rounded-full text-text-secondary hover:bg-accent-soft hover:text-accent ${transitionClass}`}
             >
               <svg
                 width="10"
@@ -287,100 +403,121 @@ export default function WhoamiCard({ language = 'EN' }: WhoamiCardProps) {
             </button>
           </div>
 
-          {/* Portrait */}
           <div className="px-2 pt-2">
             {portraitFailed ? (
-              <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-accent/20 bg-bg-secondary font-sans text-[11px] tracking-wide text-text-muted">
-                portrait unavailable
+              <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-accent/20 bg-bg-secondary px-3 text-center font-sans text-[11px] tracking-wide text-text-secondary">
+                {t.portraitUnavailable}
               </div>
             ) : (
               <Image
                 src="/baris-portrait.png"
-                alt="Barış Köse"
+                alt={t.portraitAlt}
                 width={188}
                 height={188}
-                priority
-                sizes="(min-width: 640px) 188px, 112px"
+                preload
+                sizes="188px"
                 onError={() => setPortraitFailed(true)}
                 style={{ width: '100%', height: 'auto' }}
-                className="rounded-lg pixel-art block"
+                className="pixel-art block rounded-lg"
               />
             )}
           </div>
 
-          {/* About toggle */}
           <button
-            ref={aboutButtonRef}
+            ref={desktopAboutButtonRef}
             type="button"
-            onClick={() =>
-              setCardState(cardState === 'panel' ? 'open' : 'panel')
-            }
+            onClick={() => openPanel('desktop')}
             aria-haspopup="dialog"
-            aria-expanded={cardState === 'panel'}
+            aria-expanded="false"
             aria-controls="profile-about-panel"
-            className={`focus-ring w-full border-t border-accent/15 bg-bg-surface px-3 py-2 font-sans text-[10px] font-semibold tracking-widest text-[#1f4d3a] hover:bg-accent-soft sm:text-xs ${hoverMotion}`}
+            className={`focus-ring w-full border-t border-accent/15 bg-bg-surface px-3 py-2.5 font-sans text-xs font-semibold tracking-widest text-[#1f4d3a] hover:bg-accent-soft ${transitionClass}`}
           >
-            {aboutLabel}
+            {t.about.toUpperCase()}
           </button>
         </motion.div>
       )}
 
-      {/* About panel — State B */}
-      {displayMode === 'panel' && (
-        <div
-          ref={panelRef}
-          id="profile-about-panel"
-          role="dialog"
-          aria-modal="false"
-          aria-labelledby="profile-about-title"
-          tabIndex={-1}
-          style={panelStyle}
-          className={`focus-ring fixed z-50 w-[calc(100vw-1.5rem)] max-w-[520px] overflow-y-auto rounded-2xl border-2 border-accent/40 bg-bg-surface p-5 shadow-[0_8px_24px_rgba(26,29,46,0.14)] ${fadeMotion} opacity-100`}
-        >
-          <h2 id="profile-about-title" className="sr-only">
-            {language === 'TR' ? 'Barış Köse hakkında' : 'About Barış Köse'}
-          </h2>
-          <p className="mb-3 font-serif text-base leading-relaxed text-text-secondary">
-            {aboutCopy[0]}
-          </p>
-          <p className="mb-3 font-serif text-base leading-relaxed text-text-secondary">
-            {aboutCopy[1]}
-          </p>
-          <p className="font-serif text-base leading-relaxed text-text-secondary">
-            {aboutCopy[2]}
-          </p>
-        </div>
-      )}
-
-      {/* Side tab — scroll-collapsed variant of States A/B */}
-      {cardState !== 'closed' && (
+      {!isPanelOpen && cardState === 'open' && isScrolled && (
         <button
+          ref={sideTabButtonRef}
           type="button"
           onClick={handleSideTabClick}
-          aria-label="Open profile card"
-          className={`focus-ring fixed left-0 top-[40%] z-50 flex h-12 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-none rounded-r-xl bg-accent-soft text-accent shadow-[4px_0_12px_rgba(45,95,76,0.18)] hover:translate-x-[2px] ${hoverMotion} ${fadeMotion} ${
-            displayMode === 'sideTab'
-              ? 'opacity-100'
-              : 'pointer-events-none opacity-0'
-          }`}
+          aria-label={t.openProfile}
+          className={`focus-ring fixed left-0 top-[40%] z-50 hidden h-12 w-10 -translate-y-1/2 items-center justify-center rounded-r-xl bg-accent-soft text-accent shadow-[4px_0_12px_rgba(45,95,76,0.18)] hover:translate-x-[2px] sm:flex ${transitionClass}`}
         >
-          <span style={{ fontSize: '20px', lineHeight: 1 }} aria-hidden="true">
+          <span className="text-xl leading-none" aria-hidden="true">
             👾
           </span>
         </button>
       )}
 
-      {/* Pill — State C */}
-      {cardState === 'closed' && (
+      {!isPanelOpen && cardState === 'closed' && (
         <button
+          ref={closedCardButtonRef}
           type="button"
-          onClick={() => setCardState('open')}
-          aria-label="Open profile card"
-          className={`focus-ring fixed z-50 top-4 left-5 flex items-center gap-1.5 rounded-full border border-[rgba(45,95,76,0.3)] bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] hover:bg-accent hover:text-bg-primary md:top-6 md:left-8 ${hoverMotion}`}
+          onClick={openProfileCard}
+          aria-label={t.openProfile}
+          className={`focus-ring fixed left-8 top-6 z-50 hidden items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-4 py-2 font-sans text-xs font-medium tracking-widest text-[#1f4d3a] hover:bg-accent hover:text-bg-primary sm:flex ${transitionClass}`}
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-          {language === 'TR' ? 'hakkımda' : 'whoami'}
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+          {t.about}
         </button>
+      )}
+
+      {isPanelOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end bg-[rgba(16,18,30,0.48)] sm:items-center sm:justify-center sm:p-6 animate-backdrop-fade-in"
+          style={{ backdropFilter: 'blur(3px)' }}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closePanel();
+          }}
+        >
+          <div
+            ref={panelRef}
+            id="profile-about-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-about-title"
+            aria-describedby="profile-about-description"
+            tabIndex={-1}
+            className="relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-3xl border-2 border-b-0 border-accent/40 bg-bg-surface px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 shadow-[0_-10px_30px_rgba(26,29,46,0.18)] sm:max-h-[min(680px,calc(100dvh-3rem))] sm:max-w-[620px] sm:rounded-3xl sm:border-b-2 sm:p-7 sm:shadow-[0_16px_48px_rgba(26,29,46,0.2)] animate-modal-fade-in"
+          >
+            <div className="mb-5 flex items-start justify-between gap-4 border-b border-accent/15 pb-4">
+              <div>
+                <p className="mb-1 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+                  {t.aboutEyebrow}
+                </p>
+                <h2
+                  id="profile-about-title"
+                  className="font-serif text-2xl leading-tight text-text-primary sm:text-3xl"
+                >
+                  {t.aboutTitle}
+                </h2>
+              </div>
+              <button
+                ref={panelCloseButtonRef}
+                type="button"
+                onClick={closePanel}
+                aria-label={t.closeAbout}
+                className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full border border-accent/25 bg-bg-secondary px-3 py-2 font-sans text-xs font-semibold text-text-secondary hover:border-accent/50 hover:bg-accent-soft hover:text-accent ${transitionClass}`}
+              >
+                <span aria-hidden="true">×</span>
+                <span>{language === 'TR' ? 'Kapat' : 'Close'}</span>
+              </button>
+            </div>
+
+            <div id="profile-about-description" className="space-y-4">
+              {t.body.map((paragraph) => (
+                <p
+                  key={paragraph}
+                  className="font-serif text-base leading-relaxed text-text-secondary"
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

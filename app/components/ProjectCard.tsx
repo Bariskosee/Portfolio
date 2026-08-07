@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 
 // ── SVG Thumbnails ──────────────────────────────────────────────
 
@@ -196,29 +196,127 @@ export interface ProjectCardData {
   role: string;
   tag: string;
   hasSprite?: boolean;
+  contribution?: string;
+  outcome?: string;
+  metricSource?: string;
+  metricSourceUrl?: string;
+  image?: string;
+  imageAlt?: string;
+  demoUrl?: string;
+  caseStudyUrl?: string;
 }
+
+export type ProjectCardLanguage = "EN" | "TR";
 
 interface ProjectCardProps {
   project: ProjectCardData;
   index: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  variants: Record<string, any>;
+  variants: Variants;
   reducedMotion: boolean;
+  language?: ProjectCardLanguage;
+}
+
+const labels = {
+  EN: {
+    contribution: "Contribution",
+    outcome: "Outcome",
+    metricSource: "Evidence source",
+    demo: "Live demo",
+    caseStudy: "Case study",
+    links: (title: string) => `${title} project links`,
+    githubLabel: (title: string) => `Open ${title} on GitHub`,
+    demoLabel: (title: string) => `Open the live demo for ${title}`,
+    caseStudyLabel: (title: string) => `Read the case study for ${title}`,
+    previewAlt: (title: string) => `Preview of ${title}`,
+    newTab: "opens in a new tab",
+  },
+  TR: {
+    contribution: "Katkım",
+    outcome: "Sonuç",
+    metricSource: "Kanıt kaynağı",
+    demo: "Canlı demo",
+    caseStudy: "Vaka çalışması",
+    links: (title: string) => `${title} proje bağlantıları`,
+    githubLabel: (title: string) => `${title} projesini GitHub'da aç`,
+    demoLabel: (title: string) => `${title} projesinin canlı demosunu aç`,
+    caseStudyLabel: (title: string) => `${title} projesinin vaka çalışmasını oku`,
+    previewAlt: (title: string) => `${title} projesinin ön izlemesi`,
+    newTab: "yeni sekmede açılır",
+  },
+} as const;
+
+interface ProjectLinkProps {
+  href: string;
+  label: string;
+  ariaLabel: string;
+  externalHint: string;
+  github?: boolean;
+}
+
+function ProjectLink({ href, label, ariaLabel, externalHint, github = false }: ProjectLinkProps) {
+  const isExternal = /^https?:\/\//i.test(href);
+
+  return (
+    <a
+      href={href}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      aria-label={isExternal ? `${ariaLabel} (${externalHint})` : ariaLabel}
+      className={`focus-ring transition-premium-fast inline-flex min-h-9 items-center justify-center gap-2 rounded-full border px-3 py-2 font-sans text-xs font-semibold no-underline ${
+        github
+          ? "border-[#202837] bg-[#202837] text-[#fcfcf9] hover:border-[#344054] hover:bg-[#344054]"
+          : "border-[rgba(19,26,39,0.14)] bg-[#f7f6f1] text-[#202837] hover:border-[#202837] hover:bg-[#eef1f6]"
+      }`}
+    >
+      {github ? (
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+        </svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M4 10 10 4M5 4h5v5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+      <span>{label}</span>
+    </a>
+  );
 }
 
 // ── Card ────────────────────────────────────────────────────────
 
-export default function ProjectCard({ project, index, variants, reducedMotion }: ProjectCardProps) {
+export default function ProjectCard({
+  project,
+  index,
+  variants,
+  reducedMotion,
+  language = "EN",
+}: ProjectCardProps) {
   const [hovered, setHovered] = useState(false);
-  const Thumb = THUMBS[index];
+  const [focusWithin, setFocusWithin] = useState(false);
+  const Thumb = THUMBS[index % THUMBS.length] ?? ArchThumb;
   const visibleStack = [...project.stack].slice(0, 3);
   const extra = project.stack.length - visibleStack.length;
+  const active = hovered || focusWithin;
+  const t = labels[language];
+  const hasEvidence = Boolean(project.contribution || project.outcome || project.metricSource);
 
   return (
     <motion.article
       variants={variants}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(event) => {
+        if (!event.relatedTarget || !event.currentTarget.contains(event.relatedTarget as Node)) {
+          setFocusWithin(false);
+        }
+      }}
       whileHover={
         reducedMotion
           ? undefined
@@ -227,16 +325,15 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
       style={{
         position: "relative",
         background: "var(--bg-surface)",
-        border: `1px solid ${hovered ? "rgba(19,26,39,0.22)" : "rgba(19,26,39,0.10)"}`,
+        border: `1px solid ${active ? "rgba(19,26,39,0.28)" : "rgba(19,26,39,0.10)"}`,
         borderRadius: 20,
-        boxShadow: hovered
+        boxShadow: active
           ? "0 24px 48px -12px rgba(17,24,39,0.18), 0 4px 12px rgba(17,24,39,0.06)"
           : "0 2px 4px rgba(17,24,39,0.04), 0 8px 20px -4px rgba(17,24,39,0.06)",
         transition:
           "box-shadow 180ms cubic-bezier(0.22,1,0.36,1), border-color 140ms cubic-bezier(0.22,1,0.36,1)",
         display: "flex",
         flexDirection: "column",
-        cursor: "pointer",
         overflow: "visible",
       }}
     >
@@ -257,17 +354,13 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
             height: 168,
             zIndex: 5,
             filter: "drop-shadow(0 10px 8px rgba(17,24,39,0.20))",
-            transform: hovered && !reducedMotion ? "translateY(-6px)" : "translateY(0)",
+            transform: active && !reducedMotion ? "translateY(-6px)" : "translateY(0)",
             transition: "transform 180ms cubic-bezier(0.22,1,0.36,1)",
           }}
         />
       )}
 
-      <a
-        href={project.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${project.title} on GitHub`}
+      <div
         style={{
           display: "flex",
           flexDirection: "column",
@@ -290,10 +383,22 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
         >
           <motion.div
             style={{ width: "100%", height: "100%" }}
-            animate={{ scale: hovered && !reducedMotion ? 1.04 : 1 }}
+            animate={{ scale: active && !reducedMotion ? 1.04 : 1 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Thumb />
+            {project.image ? (
+              <Image
+                src={project.image}
+                alt={project.imageAlt ?? t.previewAlt(project.title)}
+                fill
+                sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1023px) calc(50vw - 48px), 365px"
+                style={{ objectFit: "cover" }}
+              />
+            ) : (
+              <div aria-hidden="true" style={{ width: "100%", height: "100%" }}>
+                <Thumb />
+              </div>
+            )}
           </motion.div>
           {/* tag pill */}
           <div
@@ -388,17 +493,102 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
               lineHeight: 1.6,
               color: "var(--text-secondary)",
               margin: 0,
-              flex: 1,
             }}
           >
             {project.description}
           </p>
 
+          {/* Optional, source-backed case-study evidence */}
+          {hasEvidence && (
+            <dl
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                margin: "2px 0 0",
+                padding: "12px 14px",
+                border: "1px solid rgba(19,26,39,0.08)",
+                borderRadius: 12,
+                background: "rgba(238,241,246,0.72)",
+              }}
+            >
+              {project.contribution && (
+                <div>
+                  <dt
+                    style={{
+                      marginBottom: 3,
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      letterSpacing: "0.14em",
+                      color: "var(--text-secondary)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {t.contribution}
+                  </dt>
+                  <dd style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: "var(--text-primary)" }}>
+                    {project.contribution}
+                  </dd>
+                </div>
+              )}
+              {project.outcome && (
+                <div>
+                  <dt
+                    style={{
+                      marginBottom: 3,
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      letterSpacing: "0.14em",
+                      color: "var(--text-secondary)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {t.outcome}
+                  </dt>
+                  <dd style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: "var(--text-primary)" }}>
+                    {project.outcome}
+                  </dd>
+                </div>
+              )}
+              {project.metricSource && (
+                <div>
+                  <dt
+                    style={{
+                      marginBottom: 3,
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      letterSpacing: "0.14em",
+                      color: "var(--text-secondary)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {t.metricSource}
+                  </dt>
+                  <dd style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: "var(--text-secondary)" }}>
+                    {project.metricSourceUrl ? (
+                      <a
+                        href={project.metricSourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${project.metricSource} (${t.newTab})`}
+                        className="focus-ring rounded-sm underline decoration-border-strong underline-offset-2 transition-colors hover:text-accent"
+                      >
+                        {project.metricSource} ↗
+                      </a>
+                    ) : (
+                      project.metricSource
+                    )}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+
           {/* tech chips */}
           <div
             style={{
               display: "flex",
-              flexWrap: "nowrap",
+              flexWrap: "wrap",
               gap: 6,
               alignItems: "center",
               marginTop: 2,
@@ -437,68 +627,45 @@ export default function ProjectCard({ project, index, variants, reducedMotion }:
             )}
           </div>
 
-          {/* CTA row */}
-          <div
+          {/* Explicit links avoid nesting interactive elements inside a card-wide anchor. */}
+          <nav
+            aria-label={t.links(project.title)}
             style={{
-              marginTop: 4,
+              marginTop: "auto",
               paddingTop: 14,
               borderTop: "1px dashed rgba(19,26,39,0.12)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 8,
             }}
           >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                fontSize: 12,
-                fontWeight: 600,
-                color: "var(--text-primary)",
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
-              </svg>
-              {project.action}
-            </span>
-            <span
-              aria-hidden="true"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: hovered ? "#202837" : "#f2f1ec",
-                color: hovered ? "#fcfcf9" : "#202837",
-                border: hovered ? "1px solid #202837" : "1px solid rgba(19,26,39,0.1)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 280ms cubic-bezier(0.22,1,0.36,1)",
-                flexShrink: 0,
-                overflow: "hidden",
-              }}
-            >
-              <span style={{
-                display: "inline-flex",
-                transform: hovered ? "translateX(2px)" : "translateX(0)",
-                transition: "transform 180ms cubic-bezier(0.22,1,0.36,1)",
-              }}>
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 7h8M7 3l4 4-4 4"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-            </span>
-          </div>
+            <ProjectLink
+              href={project.link}
+              label={project.action}
+              ariaLabel={t.githubLabel(project.title)}
+              externalHint={t.newTab}
+              github
+            />
+            {project.demoUrl && (
+              <ProjectLink
+                href={project.demoUrl}
+                label={t.demo}
+                ariaLabel={t.demoLabel(project.title)}
+                externalHint={t.newTab}
+              />
+            )}
+            {project.caseStudyUrl && (
+              <ProjectLink
+                href={project.caseStudyUrl}
+                label={t.caseStudy}
+                ariaLabel={t.caseStudyLabel(project.title)}
+                externalHint={t.newTab}
+              />
+            )}
+          </nav>
         </div>
-      </a>
+      </div>
     </motion.article>
   );
 }

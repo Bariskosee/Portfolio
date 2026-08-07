@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
@@ -28,6 +29,24 @@ const withVersion = (path: string) => `${path}?v=${FAVICON_VERSION}`;
 
 const ogImage = "/opengraph-image";
 const twitterImage = "/twitter-image";
+
+const languageBootstrap = `(() => {
+  const queryLanguage = new URLSearchParams(window.location.search).get("lang");
+  let storedLanguage = null;
+  try {
+    storedLanguage = window.localStorage.getItem("baris-portfolio-language-v1");
+  } catch {}
+  const language = queryLanguage === "en" || queryLanguage === "tr"
+    ? queryLanguage
+    : storedLanguage === "EN" || storedLanguage === "TR"
+      ? storedLanguage.toLowerCase()
+      : window.navigator.language.toLowerCase().startsWith("tr") ? "tr" : "en";
+  document.documentElement.lang = language;
+  if (language === "en") {
+    document.documentElement.dataset.languagePending = "true";
+    window.setTimeout(() => delete document.documentElement.dataset.languagePending, 1500);
+  }
+})();`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -99,9 +118,15 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
+      suppressHydrationWarning
       className={cn("h-full", "antialiased", fraunces.variable, geistSans.variable, "font-sans", inter.variable)}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        {children}
+        <Script id="language-bootstrap" strategy="beforeInteractive">
+          {languageBootstrap}
+        </Script>
+      </body>
     </html>
   );
 }
