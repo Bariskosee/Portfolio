@@ -7,6 +7,7 @@ import MatrixName from "./components/MatrixName";
 import { TechSphere } from "./components/TechSphere";
 import WhoamiCard from "./components/WhoamiCard";
 import ProjectCard, { type ProjectCardData } from "./components/ProjectCard";
+import ExperienceCard, { type ExperienceCardData } from "./components/ExperienceCard";
 
 const ParticleFloor = dynamic(() => import("./components/ParticleFloor"), {
   ssr: false,
@@ -127,6 +128,75 @@ const projects: Record<Language, ProjectCardData[]> = {
   ],
 };
 
+const experiences: Record<Language, ExperienceCardData[]> = {
+  EN: [
+    {
+      role: "iOS & Backend Developer Intern",
+      organization: "Bluesense",
+      organizationType: "Internship",
+      period: "Jul 2026 – Present",
+      duration: "2 mos",
+      location:
+        "İTÜ Ayazağa Yerleşkesi, Koru Yolu ARI 3 Binası, 34396 Maslak / İstanbul",
+      workMode: "Hybrid",
+      summary:
+        "Developed iOS features using Swift and SwiftUI for the Smart Beauty application.",
+      highlights: [
+        "Integrated backend-driven product, pricing, bestseller, and stock information.",
+        "Contributed to the ASP.NET Core/EF Core backend, testing, debugging, and deployment workflows.",
+        "Collaborated through GitHub pull requests and supported App Store releases.",
+      ],
+      technologies: ["Swift", "SwiftUI", "ASP.NET Core", "EF Core"],
+      year: "2026",
+    },
+    {
+      role: "AI and Technology Academy Trainee",
+      organization: "Yapay Zeka ve Teknoloji Akademisi",
+      period: "Jan 2025 – Sep 2025",
+      duration: "9 mos",
+      location: "Türkiye",
+      workMode: "Remote",
+      summary: "Yapay Zeka ve Teknoloji Akademisi / Data Science",
+      highlights: [],
+      technologies: ["Data Science", "AI/ML"],
+      year: "2025",
+    },
+  ],
+  TR: [
+    {
+      role: "iOS & Backend Geliştirici Stajyeri",
+      organization: "Bluesense",
+      organizationType: "Staj",
+      period: "Tem 2026 – Devam ediyor",
+      duration: "2 ay",
+      location:
+        "İTÜ Ayazağa Yerleşkesi, Koru Yolu ARI 3 Binası, 34396 Maslak / İstanbul",
+      workMode: "Hibrit",
+      summary:
+        "Smart Beauty uygulaması için Swift ve SwiftUI kullanarak iOS özellikleri geliştirdim.",
+      highlights: [
+        "Backend üzerinden beslenen ürün, fiyat, çok satanlar ve stok bilgilerini entegre ettim.",
+        "ASP.NET Core/EF Core backend, test, hata ayıklama ve dağıtım süreçlerine katkıda bulundum.",
+        "GitHub pull request'leri üzerinden iş birliği yaptım ve App Store sürümlerini destekledim.",
+      ],
+      technologies: ["Swift", "SwiftUI", "ASP.NET Core", "EF Core"],
+      year: "2026",
+    },
+    {
+      role: "Yapay Zeka ve Teknoloji Akademisi Katılımcısı",
+      organization: "Yapay Zeka ve Teknoloji Akademisi",
+      period: "Oca 2025 – Eyl 2025",
+      duration: "9 ay",
+      location: "Türkiye",
+      workMode: "Uzaktan",
+      summary: "Yapay Zeka ve Teknoloji Akademisi / Data Science",
+      highlights: [],
+      technologies: ["Veri Bilimi", "Yapay Zeka"],
+      year: "2025",
+    },
+  ],
+};
+
 const copy = {
   EN: {
     languageLabel: "Language selection",
@@ -134,6 +204,7 @@ const copy = {
     openMenu: "Open navigation menu",
     closeMenu: "Close navigation menu",
     navWork: "Work",
+    navExperience: "Experience",
     navAbout: "About",
     navSkills: "Skills",
     navContact: "Contact",
@@ -152,7 +223,11 @@ const copy = {
     projectsSubtitle:
       "Three projects presented through the problem solved, my contribution, and the evidence available in each repository.",
     viewAll: "View every repository on GitHub",
-    aboutEyebrow: "02 — PROFILE",
+    experienceEyebrow: "02 — EXPERIENCE",
+    experienceTitle: "Experience",
+    experienceSubtitle:
+      "Two experiences spanning production iOS and backend work alongside applied data science training.",
+    aboutEyebrow: "03 — PROFILE",
     aboutTitle: "About & journey",
     aboutBody:
       "I enjoy turning complex technical ideas into understandable, maintainable products. I care about reliable backend systems, accessible interfaces, and improving the result with every iteration.",
@@ -174,11 +249,11 @@ const copy = {
         body: "Built practical communication, adaptability, and cross-cultural experience across two summer seasons.",
       },
     ],
-    technologiesEyebrow: "03 — CAPABILITIES",
+    technologiesEyebrow: "04 — CAPABILITIES",
     technologiesTitle: "Technologies",
     technologiesSubtitle:
       "Grouped by where I use them, with the animated canvas kept as a secondary visual layer.",
-    contactEyebrow: "04 — CONTACT",
+    contactEyebrow: "05 — CONTACT",
     contactTitle: "Let’s build something reliable.",
     contactBody:
       "For a CV, a deeper project walkthrough, or a junior opportunity, reach me by email or LinkedIn.",
@@ -192,6 +267,7 @@ const copy = {
     openMenu: "Navigasyon menüsünü aç",
     closeMenu: "Navigasyon menüsünü kapat",
     navWork: "Projeler",
+    navExperience: "Deneyim",
     navAbout: "Hakkımda",
     navSkills: "Yetkinlikler",
     navContact: "İletişim",
@@ -210,7 +286,11 @@ const copy = {
     projectsSubtitle:
       "Üç projeyi çözülen problem, kişisel katkım ve her depoda bulunan doğrulanabilir kanıtlarla sunuyorum.",
     viewAll: "GitHub'daki tüm depoları gör",
-    aboutEyebrow: "02 — PROFİL",
+    experienceEyebrow: "02 — DENEYİM",
+    experienceTitle: "Deneyimlerim",
+    experienceSubtitle:
+      "Üretim ortamındaki iOS ve backend çalışmalarını uygulamalı veri bilimi eğitimiyle birleştiren iki deneyim.",
+    aboutEyebrow: "03 — PROFİL",
     aboutTitle: "Hakkımda ve yolculuğum",
     aboutBody:
       "Karmaşık teknik fikirleri anlaşılır ve sürdürülebilir ürünlere dönüştürmeyi seviyorum. Güvenilir backend sistemlerini, erişilebilir arayüzleri ve her iterasyonda sonucu iyileştirmeyi önemsiyorum.",
@@ -232,11 +312,11 @@ const copy = {
         body: "İki yaz dönemi boyunca iletişim, uyum ve kültürler arası çalışma deneyimi kazandım.",
       },
     ],
-    technologiesEyebrow: "03 — YETKİNLİKLER",
+    technologiesEyebrow: "04 — YETKİNLİKLER",
     technologiesTitle: "Teknolojiler",
     technologiesSubtitle:
       "Kullandığım alana göre gruplandı; hareketli canvas ikincil bir görsel katman olarak tutuldu.",
-    contactEyebrow: "04 — İLETİŞİM",
+    contactEyebrow: "05 — İLETİŞİM",
     contactTitle: "Birlikte güvenilir bir şey geliştirelim.",
     contactBody:
       "CV, detaylı proje anlatımı veya junior bir fırsat için e-posta ya da LinkedIn üzerinden ulaşabilirsiniz.",
@@ -374,6 +454,7 @@ export default function Home() {
 
   const navigation = [
     { href: "#projects", label: t.navWork },
+    { href: "#experience", label: t.navExperience },
     { href: "#about", label: t.navAbout },
     { href: "#skills", label: t.navSkills },
     { href: "#contact", label: t.navContact },
@@ -657,6 +738,54 @@ export default function Home() {
                   {t.viewAll} ↗
                 </a>
               </div>
+            </div>
+          </section>
+
+          <section
+            id="experience"
+            aria-labelledby="experience-title"
+            className="relative scroll-mt-24 border-t border-border-soft px-5 py-20 sm:px-6 md:px-8 md:py-28"
+          >
+            <div className="mx-auto w-full max-w-6xl">
+              <motion.div
+                className="flex flex-col gap-3"
+                variants={revealVariants}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+                  {t.experienceEyebrow}
+                </p>
+                <h2
+                  id="experience-title"
+                  className="font-serif text-[clamp(2.4rem,5vw,3.8rem)] font-medium italic leading-tight text-text-primary"
+                >
+                  {t.experienceTitle}
+                </h2>
+                <p className="max-w-2xl font-sans text-sm leading-relaxed text-text-secondary md:text-base">
+                  {t.experienceSubtitle}
+                </p>
+              </motion.div>
+
+              <motion.ol
+                key={`experience-list-${language}`}
+                className="mt-12 space-y-6"
+                variants={gridVariants}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.08 }}
+              >
+                {experiences[language].map((experience, index) => (
+                  <ExperienceCard
+                    key={`${experience.organization}-${experience.role}`}
+                    experience={experience}
+                    index={index}
+                    variants={cardVariants}
+                    reducedMotion={reduceMotion}
+                  />
+                ))}
+              </motion.ol>
             </div>
           </section>
 
